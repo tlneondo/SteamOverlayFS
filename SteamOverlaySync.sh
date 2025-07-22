@@ -7,8 +7,8 @@ UUID=82C425D7C425CDEB /mnt/winOverlay/SSDWinlower ntfs ro,windows_names,prealloc
 UUID=... /mnt/winOverlay/SSD2Winlower ntfs ro,windows_names,prealloc 0 0
 
 ##set up btrfs subvolume for upper layer
-sudo btrfs subvolume create /mnt/winOverlay/@SSDWinupper
-sudo btrfs subvolume create /mnt/winOverlay/@SSD2Winupper
+sudo btrfs subvolume create 
+sudo btrfs subvolume create 
 
 UUID=... /mnt/winOverlay/SSDWinupper btrfs defaults 0 0
 UUID=... /mnt/winOverlay/SSD2Winupper btrfs defaults 0 0
@@ -39,9 +39,7 @@ sudo mount rw /mnt/winOverlay/SSDWinlower
 sudo mount rw /mnt/winOverlay/SSD2Winlower
 
 #use overlayfs tools to merge changes
-sudo rsync -a --delete /mnt/winOverlay/SSDWinupper/ /mnt/winOverlay/SSDWinlower/
-
-or overlay merge /mnt/winOverlay/SSDWinupper/ /mnt/winOverlay/SSDWinlower/
+sudo overlay merge /mnt/winOverlay/SSDWinupper/ /mnt/winOverlay/SSDWinlower/
 
 
 
