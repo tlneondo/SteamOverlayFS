@@ -40,6 +40,23 @@ sudo mount rw /mnt/winOverlay/SSD2Winlower
 
 #use overlayfs tools to merge changes
 sudo overlay merge /mnt/winOverlay/SSDWinupper/ /mnt/winOverlay/SSDWinlower/
+sudo overlay merge /mnt/winOverlay/SSD2Winupper/ /mnt/winOverlay/SSD2Winlower/
+
+#unmount writable ntfs
+sudo umount /mnt/winOverlay/SSDWinlower
+sudo umount /mnt/winOverlay/SSD2Winlower
+
+#wipe upper layers
+sudo rm -fr /mnt/winOverlay/SSDWinupper/*
+sudo rm -fr /mnt/winOverlay/SSD2Winupper/*
+
+#unmount upper layers
+sudo umount /mnt/winOverlay/SSDWinupper
+sudo umount /mnt/winOverlay/SSD2Winupper
+
+#remount drives from fstab
+sudo mount -a
+
 
 
 
