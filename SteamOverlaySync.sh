@@ -11,6 +11,11 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
+exitRemount(){
+   sudo mount -a && sudo systemctl daemon-reload
+   exit 3
+}
+
 
 
 killprocesses() {
@@ -35,7 +40,7 @@ checkallmounts () {
     # Check if the required mounts are present
     if ! mountpoint -q /mnt/SSDWin || ! mountpoint -q /mnt/SSD2Win || ! mountpoint -q /mnt/winOverlay/SSDWinLower || ! mountpoint -q /mnt/winOverlay/SSD2WinLower; then
         echo "One or more required mounts are not present. Please ensure all mounts are active."
-        exit 1 
+        exitRemount 
     fi
 }
 
@@ -43,7 +48,7 @@ checkfinalOverlayMounts () {
     # Check if the required mounts are present
     if ! mountpoint -q /mnt/SSDWin || ! mountpoint -q /mnt/SSD2Win; then
         echo "Overlay mounts Do not exist"
-        exit 1 
+        exitRemount 
     fi
 }
 
@@ -52,24 +57,28 @@ checklowermounts () {
     # Check if the required mounts are present
     if ! mountpoint -q /mnt/winOverlay/SSDWinLower || ! mountpoint -q /mnt/winOverlay/SSD2WinLower; then
         echo "One or more required mounts are not present. Please ensure all mounts are active."
-        exit 1 
+        exitRemount 
     fi
 }
 
 if(checkallmounts); then
     echo "All mounts are present, continuing"
 else
-    exit 1
+    exitRemount
 fi
 
 #check if disk space in layer is less than free space on drive
-amtinLayer=$(df --total | grep "/mnt/winOverlay/SSDWinUpper" | awk '{printf "%s\n",$3}')
-amtFreeOnDrive=$(df --total | grep "/mnt/winOverlay/SSDWinLower" | awk '{printf "%s\n",$4}')
+amtinLayer=$(du -c -d 0 /mnt/winOverlay/SSDWinUpper | grep "total" | awk '{printf "%s",$1}')
+amtFreeOnDrive=$(df --total | grep "/mnt/winOverlay/SSDWinLower" | awk '{printf "%s",$4}')
 
-if[[ $amtinLayer -gt $amtFreeOnDrive ]];
+printf "Amount in layer: %s\n" "$amtinLayer"
+printf "Amount free on drive: %s\n" "$amtFreeOnDrive" 
+
+
+if [[ $amtinLayer -gt $amtFreeOnDrive ]]
    then
       echo "Not enough space on drive to merge changes, exiting"
-      exit 1
+      exitRemount
 fi
 
 echo "Closing Steam"
@@ -90,7 +99,7 @@ if(checkfinalOverlayMounts); then
     echo "Overlay mounts unmounted, continuing"
 else
     echo "Overlay mounts still exist and were not unmounted properly, exiting"
-    exit 1
+    exitRemount
 fi
 
 echo "unmount lower read only ntfs drives"
@@ -101,7 +110,7 @@ if(checklowermounts); then
     echo "read only lower mounts unmounted, continuing"
 else
     echo "read only lower mounts still exist and were not unmounted properly, exiting"
-    exit 1
+    exitRemount
 fi
 
 echo "mount NTFS as read write"
@@ -112,7 +121,7 @@ if(echo $?); then
     echo "Mounted SSDWinLower as read write, continuing"
 else
     echo "Failed to mount SSDWinLower as read write, exiting"
-    exit 1
+    exitRemount
 fi
 
 #check that there is enough space on the drive
@@ -124,7 +133,7 @@ if(echo $?); then
     echo "Mounted SSD2WinLower as read write, continuing"
 else
     echo "Failed to mount SSD2WinLower as read write, exiting"
-    exit 1
+    exitRemount
 fi
 
 
@@ -150,14 +159,13 @@ if(! checklowermounts); then
     echo "Writable lower mounts unmounted, continuing"
 else
     echo "Writable lower mounts still exist and were not unmounted properly, exiting"
-    exit 1
+    exitRemount
 fi
 
 
 
 echo "remount drives from fstab"
-sudo mount -a
-sudo systemctl daemon-reload
+exitRemount
 
 
 
