@@ -102,15 +102,23 @@ echo "use overlayfs tools to merge changes"
 sudo ./overlay merge -l /mnt/winOverlay/SSDWinLower/SteamLibrary/steamapps/ -u /mnt/winOverlay/SSDWinUpper/SteamLibrary/steamapps/ -f
 sudo ./overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/ -f
 
-read -n 1 -s -r -p "Press any key to no errors have occurred in overlay merge"
+read -n 1 -s -r -p "Press any key to continue if no errors have occurred in overlay merge"
 
+#make sure we are in root directory to avoid issues with unmounting
 cd /
 
 echo "unmount writable ntfs"
 sudo umount /mnt/winOverlay/SSDWinLower
 sudo umount /mnt/winOverlay/SSD2WinLower
 
-read -n 1 -s -r -p "Press any key when writable lower drives are unmounted"
+#check that unmounts were successful
+checklowermounts()
+if(! checklowermounts); then
+    echo "Writable lower mounts unmounted, continuing"
+else
+    echo "Writable lower mounts still exist and were not unmounted properly, exiting"
+    exit 1
+fi
 
 
 echo "remount drives from fstab"
