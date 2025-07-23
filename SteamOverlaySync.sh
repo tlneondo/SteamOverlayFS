@@ -21,17 +21,10 @@ sudo umount /mnt/SSD2Win
 
 sleep 10s
 
-echo "unmount lower readonly ntfs"
-
-sudo umount /mnt/winOverlay/SSDWinLower
-sudo umount /mnt/winOverlay/SSD2WinLower
-
-sleep 10s
-
 echo "mount NTFS as read write"
 
-sudo mount UUID=82C425D7C425CDEB /mnt/winOverlay/SSDWinLower -o rw
-sudo mount UUID=78DBFD1A57D3E447 /mnt/winOverlay/SSD2WinLower -o rw
+sudo mount UUID=82C425D7C425CDEB /mnt/winOverlay/SSDWinLower -o remount,rw,windows_names,prealloc
+sudo mount UUID=78DBFD1A57D3E447 /mnt/winOverlay/SSD2WinLower -o remount,rw,windows_names,prealloc
 
 sleep 15s
 
