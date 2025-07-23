@@ -66,7 +66,7 @@ fi
 amtinLayer = $(df --total | grep "/mnt/winOverlay/SSDWinUpper" | awk '{printf "%s\n",$3}')
 amtFreeOnDrive = $(df --total | grep "/mnt/winOverlay/SSDWinLower" | awk '{printf "%s\n",$4}')
 
-if($amtinLayer -gt $amtFreeOnDrive); then
+if(amtinLayer -gt amtFreeOnDrive); then
     echo "Not enough space on drive to merge changes, exiting"
     exit 1
 fi
