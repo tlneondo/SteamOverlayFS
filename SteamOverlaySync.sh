@@ -9,6 +9,24 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
+killprocesses() {
+    # Check if any processes are using the mount points
+    local mount_points=("/mnt/SSDWin" "/mnt/SSD2Win" "/mnt/winOverlay/SSDWinLower" "/mnt/winOverlay/SSD2WinLower")
+    for mount_point in "${mount_points[@]}"; do
+        fuser -cuk "$mount_point"
+    done
+
+    # Wait a moment to ensure processes have terminated
+    sleep 2
+    #check again
+    for mount_point in "${mount_points[@]}"; do
+        if lsof +D "$mount_point" &>/dev/null; then
+            echo "Processes are using the mount point $mount_point. Please close them before proceeding."
+            exit 1
+        fi
+    done
+}
+
 checkallmounts () {
     # Check if the required mounts are present
     if ! mountpoint -q /mnt/SSDWin || ! mountpoint -q /mnt/SSD2Win || ! mountpoint -q /mnt/winOverlay/SSDWinLower || ! mountpoint -q /mnt/winOverlay/SSD2WinLower; then
@@ -45,6 +63,8 @@ echo "Closing Steam"
 killall steam
 
 read -n 1 -s -r -p "Press any key when Steam is closed"
+
+killprocesses()
 
 echo "unmount merged folders"
 sudo umount /mnt/SSDWin
