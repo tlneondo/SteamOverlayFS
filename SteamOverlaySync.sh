@@ -89,6 +89,9 @@ else
     exit 1
 fi
 
+#check that there is enough space on the drive
+#TODO
+
 sudo mount UUID=78DBFD1A57D3E447 /mnt/winOverlay/SSD2WinLower -o remount,rw,windows_names,prealloc
 
 if(echo $?); then
@@ -97,6 +100,9 @@ else
     echo "Failed to mount SSD2WinLower as read write, exiting"
     exit 1
 fi
+
+#check that there is enough space on the drive
+#TODO
 
 echo "use overlayfs tools to merge changes"
 sudo ./overlay merge -l /mnt/winOverlay/SSDWinLower/SteamLibrary/steamapps/ -u /mnt/winOverlay/SSDWinUpper/SteamLibrary/steamapps/ -f
