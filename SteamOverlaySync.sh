@@ -84,6 +84,8 @@ echo "unmount merged folder overlays"
 sudo umount /mnt/SSDWin
 sudo umount /mnt/SSD2Win
 
+
+
 if(checkfinalOverlayMounts); then
     echo "Overlay mounts unmounted, continuing"
 else
@@ -91,9 +93,20 @@ else
     exit 1
 fi
 
+echo "unmount lower writable ntfs drives"
+sudo umount /mnt/winOverlay/SSDWinLower
+sudo umount /mnt/winOverlay/SSD2WinLower
+
+if(checklowermounts); then
+    echo "Writable lower mounts unmounted, continuing"
+else
+    echo "Writable lower mounts still exist and were not unmounted properly, exiting"
+    exit 1
+fi
+
 echo "mount NTFS as read write"
 
-sudo mount UUID=82C425D7C425CDEB /mnt/winOverlay/SSDWinLower -o remount,rw,windows_names,prealloc
+sudo mount UUID=82C425D7C425CDEB /mnt/winOverlay/SSDWinLower -o rw,windows_names,prealloc
 
 if(echo $?); then
     echo "Mounted SSDWinLower as read write, continuing"
@@ -105,7 +118,7 @@ fi
 #check that there is enough space on the drive
 #TODO
 
-sudo mount UUID=78DBFD1A57D3E447 /mnt/winOverlay/SSD2WinLower -o remount,rw,windows_names,prealloc
+sudo mount UUID=78DBFD1A57D3E447 /mnt/winOverlay/SSD2WinLower -o rw,windows_names,prealloc
 
 if(echo $?); then
     echo "Mounted SSD2WinLower as read write, continuing"
