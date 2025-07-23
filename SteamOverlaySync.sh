@@ -67,7 +67,7 @@ echo "Killing processes using mount points"
 
 killprocesses()
 
-echo "unmount merged folders"
+echo "unmount merged folder overlays"
 sudo umount /mnt/SSDWin
 sudo umount /mnt/SSD2Win
 
@@ -119,6 +119,7 @@ else
     echo "Writable lower mounts still exist and were not unmounted properly, exiting"
     exit 1
 fi
+
 
 
 echo "remount drives from fstab"
