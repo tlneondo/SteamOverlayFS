@@ -17,7 +17,7 @@ killprocesses() {
     # Check if any processes are using the mount points
     local mount_points=("/mnt/SSDWin" "/mnt/SSD2Win" "/mnt/winOverlay/SSDWinLower" "/mnt/winOverlay/SSD2WinLower")
     for mount_point in "${mount_points[@]}"; do
-        fuser -cuk "$mount_point"
+        fuser -vcuk "$mount_point"
     done
 
     # Wait a moment to ensure processes have terminated
@@ -93,14 +93,14 @@ else
     exit 1
 fi
 
-echo "unmount lower writable ntfs drives"
+echo "unmount lower read only ntfs drives"
 sudo umount /mnt/winOverlay/SSDWinLower
 sudo umount /mnt/winOverlay/SSD2WinLower
 
 if(checklowermounts); then
-    echo "Writable lower mounts unmounted, continuing"
+    echo "read only lower mounts unmounted, continuing"
 else
-    echo "Writable lower mounts still exist and were not unmounted properly, exiting"
+    echo "read only lower mounts still exist and were not unmounted properly, exiting"
     exit 1
 fi
 
@@ -130,7 +130,7 @@ fi
 
 
 echo "use overlayfs tools to merge changes"
-sudo ./overlay merge -l /mnt/winOverlay/SSDWinLower/SteamLibrary/steamapps/ -u /mnt/winOverlay/SSDWinUpper/SteamLibrary/steamapps/ -f
+sudo ./overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/ -u //mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/ -f
 sudo ./overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/ -f
 
 
