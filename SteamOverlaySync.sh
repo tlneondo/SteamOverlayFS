@@ -9,6 +9,18 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
+#check that there is enough space on the drive
+#TODO
+
+#check if disk space in layer is less than free space on drive
+$amtinLayer = $(df --total | grep "/mnt/winOverlay/SSDWinUpper" | awk '{printf "%s\n",$3}')
+$amtFreeOnDrive = $(df --total | grep "/mnt/winOverlay/SSDWinLower" | awk '{printf "%s\n",$4}')
+
+if($amtinLayer -gt $amtFreeOnDrive); then
+    echo "Not enough space on drive to merge changes, exiting"
+    exit 1
+fi
+
 killprocesses() {
     # Check if any processes are using the mount points
     local mount_points=("/mnt/SSDWin" "/mnt/SSD2Win" "/mnt/winOverlay/SSDWinLower" "/mnt/winOverlay/SSD2WinLower")
@@ -101,12 +113,13 @@ else
     exit 1
 fi
 
-#check that there is enough space on the drive
-#TODO
+
 
 echo "use overlayfs tools to merge changes"
 sudo ./overlay merge -l /mnt/winOverlay/SSDWinLower/SteamLibrary/steamapps/ -u /mnt/winOverlay/SSDWinUpper/SteamLibrary/steamapps/ -f
 sudo ./overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/ -f
+
+
 
 read -n 1 -s -r -p "Press any key to continue if no errors have occurred in overlay merge"
 
