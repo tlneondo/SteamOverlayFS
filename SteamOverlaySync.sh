@@ -1,61 +1,60 @@
-sudo mkdir /mnt/winOverlay
-cd /mnt/winOverlay
-sudo mkdir SSDWinlower SSDWinupper SSD2Winlower SSD2Winupper SSDWinMerge SSD2WinMerge
-
-#mounts for lower readonly ntfs
-UUID=82C425D7C425CDEB /mnt/winOverlay/SSDWinlower ntfs ro,windows_names,prealloc 0 0
-UUID=... /mnt/winOverlay/SSD2Winlower ntfs ro,windows_names,prealloc 0 0
-
-##set up btrfs subvolume for upper layer
-sudo btrfs subvolume create 
-sudo btrfs subvolume create 
-
-UUID=... /mnt/winOverlay/SSDWinupper btrfs defaults 0 0
-UUID=... /mnt/winOverlay/SSD2Winupper btrfs defaults 0 0
-
-overlay /mnt/SSDWin overlay noauto,x-systemd.automount,lowerdir=/mnt/winOverlay/SSDWinlower,upperdir=/mnt/winOverlay/SSDWinupper,workdir=/mnt/winOverlay/SSDWinMerge
-overlay /mnt/SSD2Win overlay noauto,x-systemd.automount,lowerdir=/mnt/winOverlay/SSD2Winlower,upperdir=/mnt/winOverlay/SSD2Winupper,workdir=/mnt/winOverlay/SSD2WinMerge
-
-
 #merge script
 
 #
 # TODO Wait to make sure filesystems are not busy
 #
 
-#close steam
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root or with sudo. Exiting."
+   exit 1
+fi
+
+
+echo "Closing Steam"
 killall steam
 
-#unmount merged folders
+sleep 10s
+
+echo"unmount merged folders"
 sudo umount /mnt/SSDWin
 sudo umount /mnt/SSD2Win
 
-#unmount lower readonly ntfs
-sudo umount /mnt/winOverlay/SSDWinlower
-sudo umount /mnt/winOverlay/SSD2Winlower
+sleep 10s
 
-#mount NTFS as read write
-sudo mount rw /mnt/winOverlay/SSDWinlower
-sudo mount rw /mnt/winOverlay/SSD2Winlower
+echo "unmount lower readonly ntfs"
 
-#use overlayfs tools to merge changes
-sudo overlay merge /mnt/winOverlay/SSDWinupper/ /mnt/winOverlay/SSDWinlower/
-sudo overlay merge /mnt/winOverlay/SSD2Winupper/ /mnt/winOverlay/SSD2Winlower/
+sudo umount /mnt/winOverlay/SSDWinLower
+sudo umount /mnt/winOverlay/SSD2WinLower
 
-#unmount writable ntfs
-sudo umount /mnt/winOverlay/SSDWinlower
-sudo umount /mnt/winOverlay/SSD2Winlower
+sleep 10s
 
-#wipe upper layers
-sudo rm -fr /mnt/winOverlay/SSDWinupper/*
-sudo rm -fr /mnt/winOverlay/SSD2Winupper/*
+echo "mount NTFS as read write"
 
-#unmount upper layers
-sudo umount /mnt/winOverlay/SSDWinupper
+sudo mount UUID=82C425D7C425CDEB /mnt/winOverlay/SSDWinLower -o rw
+sudo mount UUID=78DBFD1A57D3E447 /mnt/winOverlay/SSD2WinLower -o rw
+
+sleep 15s
+
+echo "use overlayfs tools to merge changes"
+sudo ./overlay merge -l /mnt/winOverlay/SSDWinLower/SteamLibrary/steamapps/ -u /mnt/winOverlay/SSDWinUpper/SteamLibrary/steamapps/ -f
+sudo ./overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/ -f
+
+echo "unmount writable ntfs"
+sudo umount /mnt/winOverlay/SSDWinLower
+sudo umount /mnt/winOverlay/SSD2WinLower
+
+sleep 15s
+
+
+echo "unmount upper layers"
+sudo umount /mnt/winOverlay/SSDWinUpper
 sudo umount /mnt/winOverlay/SSD2Winupper
 
-#remount drives from fstab
+sleep 15s
+
+echo "remount drives from fstab"
 sudo mount -a
+sudo systemctl daemon-reload
 
 
 
