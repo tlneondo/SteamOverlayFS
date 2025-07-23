@@ -62,7 +62,8 @@ fi
 echo "Closing Steam"
 killall steam
 
-read -n 1 -s -r -p "Press any key when Steam is closed"
+#kill everything using the mount points
+echo "Killing processes using mount points"
 
 killprocesses()
 
