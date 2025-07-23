@@ -9,9 +9,6 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-#check that there is enough space on the drive
-#TODO
-
 #check if disk space in layer is less than free space on drive
 $amtinLayer = $(df --total | grep "/mnt/winOverlay/SSDWinUpper" | awk '{printf "%s\n",$3}')
 $amtFreeOnDrive = $(df --total | grep "/mnt/winOverlay/SSDWinLower" | awk '{printf "%s\n",$4}')
