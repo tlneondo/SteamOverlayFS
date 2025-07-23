@@ -34,17 +34,28 @@ checklowermounts () {
     fi
 }
 
+if(checkallmounts); then
+    echo "All mounts are present, continuing"
+else
+    exit 1
+fi
+
 
 echo "Closing Steam"
 killall steam
 
 read -n 1 -s -r -p "Press any key when Steam is closed"
 
-echo"unmount merged folders"
+echo "unmount merged folders"
 sudo umount /mnt/SSDWin
 sudo umount /mnt/SSD2Win
 
-read -n 1 -s -r -p "Press any key when folders are unmounted"
+if(!checkfinalOverlayMounts); then
+    echo "Overlay mounts unmounted, continuing"
+else
+    echo "Overlay mounts still exist and were not unmounted properly, exiting"
+    exit 1
+fi
 
 echo "mount NTFS as read write"
 
