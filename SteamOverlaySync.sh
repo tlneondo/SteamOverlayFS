@@ -9,7 +9,30 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-cd /
+checkallmounts () {
+    # Check if the required mounts are present
+    if ! mountpoint -q /mnt/SSDWin || ! mountpoint -q /mnt/SSD2Win || ! mountpoint -q /mnt/winOverlay/SSDWinLower || ! mountpoint -q /mnt/winOverlay/SSD2WinLower; then
+        echo "One or more required mounts are not present. Please ensure all mounts are active."
+        exit 1 
+    fi
+}
+
+checkfinalOverlayMounts () {
+    # Check if the required mounts are present
+    if ! mountpoint -q /mnt/SSDWin || ! mountpoint -q /mnt/SSD2Win; then
+        echo "Overlay mounts Do not exist"
+        exit 1 
+    fi
+}
+
+
+checklowermounts () {
+    # Check if the required mounts are present
+    if ! mountpoint -q /mnt/winOverlay/SSDWinLower || ! mountpoint -q /mnt/winOverlay/SSD2WinLower; then
+        echo "One or more required mounts are not present. Please ensure all mounts are active."
+        exit 1 
+    fi
+}
 
 
 echo "Closing Steam"
