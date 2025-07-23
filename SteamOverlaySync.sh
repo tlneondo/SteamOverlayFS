@@ -46,10 +46,6 @@ sudo umount /mnt/winOverlay/SSD2WinLower
 sleep 15s
 
 
-echo "unmount upper layers"
-sudo umount /mnt/winOverlay/SSDWinUpper
-sudo umount /mnt/winOverlay/SSD2Winupper
-
 sleep 15s
 
 echo "remount drives from fstab"
