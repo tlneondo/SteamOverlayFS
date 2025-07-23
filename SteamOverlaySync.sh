@@ -78,7 +78,7 @@ killall steam
 #kill everything using the mount points
 echo "Killing processes using mount points"
 
-killprocesses()
+killprocesses
 
 echo "unmount merged folder overlays"
 sudo umount /mnt/SSDWin
