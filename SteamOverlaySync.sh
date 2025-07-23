@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 #merge script
 
 #
@@ -9,14 +11,7 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-#check if disk space in layer is less than free space on drive
-$amtinLayer = $(df --total | grep "/mnt/winOverlay/SSDWinUpper" | awk '{printf "%s\n",$3}')
-$amtFreeOnDrive = $(df --total | grep "/mnt/winOverlay/SSDWinLower" | awk '{printf "%s\n",$4}')
 
-if($amtinLayer -gt $amtFreeOnDrive); then
-    echo "Not enough space on drive to merge changes, exiting"
-    exit 1
-fi
 
 killprocesses() {
     # Check if any processes are using the mount points
@@ -64,6 +59,15 @@ checklowermounts () {
 if(checkallmounts); then
     echo "All mounts are present, continuing"
 else
+    exit 1
+fi
+
+#check if disk space in layer is less than free space on drive
+$amtinLayer = $(df --total | grep "/mnt/winOverlay/SSDWinUpper" | awk '{printf "%s\n",$3}')
+$amtFreeOnDrive = $(df --total | grep "/mnt/winOverlay/SSDWinLower" | awk '{printf "%s\n",$4}')
+
+if($amtinLayer -gt $amtFreeOnDrive); then
+    echo "Not enough space on drive to merge changes, exiting"
     exit 1
 fi
 
