@@ -1,0 +1,14 @@
+[Unit]
+Description=Sync Steam Games to NTFS drive before shutdown
+Requires=network.target
+DefaultDependencies=no
+Before=shutdown.target reboot.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/bin/true
+ExecStop=mycommand
+
+[Install]
+WantedBy=multi-user.target
