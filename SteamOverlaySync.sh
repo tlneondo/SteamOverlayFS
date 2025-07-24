@@ -15,12 +15,6 @@ fi
     SCRIPT_DIR="$(dirname "$0")"
 
 
-exitRemount(){
-   sudo mount -a && sudo systemctl daemon-reload
-   exit 3
-}
-
-
 
 killprocesses() {
     # Check if any processes are using the mount points
@@ -40,28 +34,6 @@ killprocesses() {
     done
 }
 
-checkallmounts () {
-    # Check if the required mounts are present
-    if ! mountpoint /mnt/SSDWin || ! mountpoint /mnt/SSD2Win || ! mountpoint /mnt/winOverlay/SSDWinLower || ! mountpoint /mnt/winOverlay/SSD2WinLower; then
-        exit 1 
-    fi
-}
-
-checkfinalOverlayMounts () {
-    # Check if the required mounts are present
-    if ! mountpoint /mnt/SSDWin || ! mountpoint /mnt/SSD2Win; then
-        exit 1 
-    fi
-}
-
-
-
-
-if(checkallmounts); then
-    echo "All mounts are present, continuing"
-else
-    exitRemount
-fi
 
 #check if disk space in layer is less than free space on drive
 amtinLayer=$(du -c -d 0 /mnt/winOverlay/SSDWinUpper | grep "total" | awk '{printf "%s",$1}')
@@ -74,28 +46,20 @@ printf "Amount free on drive: %s\n" "$amtFreeOnDrive"
 if [[ $amtinLayer -gt $amtFreeOnDrive ]]
    then
       echo "Not enough space on drive to merge changes, exiting"
-      exitRemount
+      exit 1
 fi
 
 echo "Closing Steam"
 killall steam
 
 #kill everything using the mount points
-echo "Killing processes using mount points"
-
-killprocesses
+#echo "Killing processes using mount points"
+#killprocesses
 
 sudo umount /mnt/SSDWin
 sudo umount /mnt/SSD2Win
 
 sleep 2
-
-if(checkfinalOverlayMounts); then
-    echo "Overlay mounts unmounted, continuing"
-else
-    echo "Overlay mounts still exist and were not unmounted properly, exiting"
-    exitRemount
-fi
 
 echo "unmount lower read only ntfs drives"
 sudo umount /mnt/winOverlay/SSDWinLower
@@ -106,12 +70,12 @@ sleep 2
 #check that the the unmounting was successful
 if mountpoint /mnt/winOverlay/SSDWinLower; then
     echo "SSDWinLower is still mounted, exiting"
-    exitRemount
+    exit 1
 fi
 
 if mountpoint /mnt/winOverlay/SSD2WinLower; then
     echo "SSD2WinLower is still mounted, exiting"
-    exitRemount
+    exit 1
 fi
 
 
@@ -122,7 +86,7 @@ if(echo $?); then
     echo "Mounted SSDWinLower as read write, continuing"
 else
     echo "Failed to mount SSDWinLower as read write, exiting"
-    exitRemount
+    exit 1
 fi
 
 #check that there is enough space on the drive
@@ -134,7 +98,7 @@ if(echo $?); then
     echo "Mounted SSD2WinLower as read write, continuing"
 else
     echo "Failed to mount SSD2WinLower as read write, exiting"
-    exitRemount
+    exit 1
 fi
 
 
@@ -164,19 +128,26 @@ sleep 2
 #check that the the unmounting was successful
 if mountpoint /mnt/winOverlay/SSDWinLower; then
     echo "SSDWinLower is still writable, exiting"
-    exitRemount
+    exit 1
 fi
 
 if mountpoint /mnt/winOverlay/SSD2WinLower; then
     echo "SSD2WinLower is still writable, exiting"
-    exitRemount
+    exit 1
 fi
 
 
 
 
 echo "remount drives from fstab"
-exitRemount
+
+sudo mount -a && sudo systemctl daemon-reload
+sleep 1
+
+sudo mount -t overlay overlay -o noauto,x-systemd.automount,defaults,lowerdir=/mnt/winOverlay/SSDWinLower,upperdir=/mnt/winOverlay/SSDWinUpper,workdir=/mnt/winOverlay/SSDWinMerge /mnt/SSDWin
+sudo mount -t overlay overlay -o noauto,x-systemd.automount,defaults,lowerdir=/mnt/winOverlay/SSD2WinLower,upperdir=/mnt/winOverlay/SSD2WinUpper,workdir=/mnt/winOverlay/SSD2WinMerge /mnt/SSD2Win
+
+exit 0
 
 
 
