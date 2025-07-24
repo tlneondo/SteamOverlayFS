@@ -11,6 +11,10 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
+# Get the directory of the current script
+    SCRIPT_DIR="$(dirname "$0")"
+
+
 exitRemount(){
    sudo mount -a && sudo systemctl daemon-reload
    exit 3
@@ -38,28 +42,20 @@ killprocesses() {
 
 checkallmounts () {
     # Check if the required mounts are present
-    if ! mountpoint -q /mnt/SSDWin || ! mountpoint -q /mnt/SSD2Win || ! mountpoint -q /mnt/winOverlay/SSDWinLower || ! mountpoint -q /mnt/winOverlay/SSD2WinLower; then
-        echo "One or more required mounts are not present. Please ensure all mounts are active."
-        exitRemount 
+    if ! mountpoint /mnt/SSDWin || ! mountpoint /mnt/SSD2Win || ! mountpoint /mnt/winOverlay/SSDWinLower || ! mountpoint /mnt/winOverlay/SSD2WinLower; then
+        exit 1 
     fi
 }
 
 checkfinalOverlayMounts () {
     # Check if the required mounts are present
-    if ! mountpoint -q /mnt/SSDWin || ! mountpoint -q /mnt/SSD2Win; then
-        echo "Overlay mounts Do not exist"
-        exitRemount 
+    if ! mountpoint /mnt/SSDWin || ! mountpoint /mnt/SSD2Win; then
+        exit 1 
     fi
 }
 
 
-checklowermounts () {
-    # Check if the required mounts are present
-    if ! mountpoint -q /mnt/winOverlay/SSDWinLower || ! mountpoint -q /mnt/winOverlay/SSD2WinLower; then
-        echo "One or more required mounts are not present. Please ensure all mounts are active."
-        exitRemount 
-    fi
-}
+
 
 if(checkallmounts); then
     echo "All mounts are present, continuing"
@@ -89,11 +85,10 @@ echo "Killing processes using mount points"
 
 killprocesses
 
-echo "unmount merged folder overlays"
 sudo umount /mnt/SSDWin
 sudo umount /mnt/SSD2Win
 
-
+sleep 2
 
 if(checkfinalOverlayMounts); then
     echo "Overlay mounts unmounted, continuing"
@@ -106,16 +101,22 @@ echo "unmount lower read only ntfs drives"
 sudo umount /mnt/winOverlay/SSDWinLower
 sudo umount /mnt/winOverlay/SSD2WinLower
 
-if(checklowermounts); then
-    echo "read only lower mounts unmounted, continuing"
-else
-    echo "read only lower mounts still exist and were not unmounted properly, exiting"
+sleep 2
+
+#check that the the unmounting was successful
+if mountpoint /mnt/winOverlay/SSDWinLower; then
+    echo "SSDWinLower is still mounted, exiting"
     exitRemount
 fi
 
-echo "mount NTFS as read write"
+if mountpoint /mnt/winOverlay/SSD2WinLower; then
+    echo "SSD2WinLower is still mounted, exiting"
+    exitRemount
+fi
+
 
 sudo mount UUID=82C425D7C425CDEB /mnt/winOverlay/SSDWinLower -o rw,windows_names,prealloc
+sleep 1
 
 if(echo $?); then
     echo "Mounted SSDWinLower as read write, continuing"
@@ -125,9 +126,9 @@ else
 fi
 
 #check that there is enough space on the drive
-#TODO
 
 sudo mount UUID=78DBFD1A57D3E447 /mnt/winOverlay/SSD2WinLower -o rw,windows_names,prealloc
+sleep 1
 
 if(echo $?); then
     echo "Mounted SSD2WinLower as read write, continuing"
@@ -139,28 +140,38 @@ fi
 
 
 echo "use overlayfs tools to merge changes"
-sudo ./overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/ -u //mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/ -f
-sudo ./overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/ -f
+sudo $SCRIPT_DIR/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/ -u //mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/ -f
+sudo $SCRIPT_DIR/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/ -f
 
 
 
 read -n 1 -s -r -p "Press any key to continue if no errors have occurred in overlay merge"
 
 #make sure we are in root directory to avoid issues with unmounting
+
 cd /
 
-echo "unmount writable ntfs"
+sudo umount /mnt/SSDWin
+sudo umount /mnt/SSD2Win
+
+sleep 2
+
 sudo umount /mnt/winOverlay/SSDWinLower
 sudo umount /mnt/winOverlay/SSD2WinLower
 
-#check that unmounts were successful
-checklowermounts()
-if(! checklowermounts); then
-    echo "Writable lower mounts unmounted, continuing"
-else
-    echo "Writable lower mounts still exist and were not unmounted properly, exiting"
+sleep 2
+
+#check that the the unmounting was successful
+if mountpoint /mnt/winOverlay/SSDWinLower; then
+    echo "SSDWinLower is still writable, exiting"
     exitRemount
 fi
+
+if mountpoint /mnt/winOverlay/SSD2WinLower; then
+    echo "SSD2WinLower is still writable, exiting"
+    exitRemount
+fi
+
 
 
 
