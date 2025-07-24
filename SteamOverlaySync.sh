@@ -9,8 +9,9 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-# Get the directory of the current script
+# Get the directory of the current script and set the overlay location
 SCRIPT_DIR="$(dirname "$0")"
+OVERLAYLOCATION="$HOME/Projects/SteamOverlayFS/"
 
 
 #check if disk space in layer is less than free space on drive
@@ -72,8 +73,8 @@ fi
 
 
 echo "use overlayfs tools to merge changes"  | systemd-cat -t sysDSyncSteamb4Shutdown
-sudo $SCRIPT_DIR/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/ -u //mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/ -f
-sudo $SCRIPT_DIR/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/ -f
+sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/ -u //mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/ -f
+sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/ -f
 
 echo "Any updates to Windows Steam Library have been merged onto the NTFS partition."  | systemd-cat -t sysDSyncSteamb4Shutdown
 exit 0
