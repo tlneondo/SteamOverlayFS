@@ -73,8 +73,25 @@ fi
 
 
 echo "use overlayfs tools to merge changes"  | systemd-cat -t sysDSyncSteamb4Shutdown
-sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/ -u //mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/ -f
-sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/ -f
+sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/common/ -u /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/common/ -f
+sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/workshop/ -u /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/workshop/ -f
+sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/temp/ -u /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/temp/ -f
+sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/downloads/ -u /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/downloads/ -f
+sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/sourcemods/ -u /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/sourcemods/ -f
+
+sudo rsync -avr /mnt/winOverlay/SSD2WinUpper/Media/Games/Steam/steamapps/*.acf /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/ --remove-source-files
+
+suro rm -rf /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/*
+
+sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/common/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/common/ -f
+sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/workshop/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/workshop/ -f
+sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/temp/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/temp/ -f
+sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/downloads/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/downloads/ -f
+sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/sourcemods/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/sourcemods/ -f
+
+sudo rsync -avr /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/*.acf /mnt/winOverlay/SSDWinLower/SteamLibrary/steamapps/ --remove-source-files
+
+suro rm -rf /mnt/winOverlay/SSD2WinUpper/Media/Games/Steam/steamapps/*
 
 echo "Any updates to Windows Steam Library have been merged onto the NTFS partition."  | systemd-cat -t sysDSyncSteamb4Shutdown
 exit 0
