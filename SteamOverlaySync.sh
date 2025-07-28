@@ -1,6 +1,10 @@
 #!/usr/bin/pkexec /bin/bash 
 
-#merge script
+#Todo
+
+#flow control for if running as service or manually
+
+#try catch for drive mounting
 
 echo "Script Start: Merge OverlayFS into NTFS Drive" | systemd-cat -t sysDSyncSteamb4Shutdown
 
