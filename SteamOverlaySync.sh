@@ -10,6 +10,8 @@
 
 #set variables before run?
 
+#break drive space check into function
+
 echo "Script Start: Merge OverlayFS into NTFS Drive" | systemd-cat -t sysDSyncSteamb4Shutdown
 
 if [[ $EUID -ne 0 ]]; then
