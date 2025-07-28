@@ -17,6 +17,7 @@ fi
 SCRIPT_DIR="$(dirname "$0")"
 OVERLAYLOCATION="$HOME/Projects/SteamOverlayFS/"
 SCRIPT_RUN_TYPE=0
+#1 = manual, 2 = at shutdown
 
 
 #check args
