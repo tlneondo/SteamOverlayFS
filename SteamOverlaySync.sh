@@ -42,6 +42,13 @@ SCRIPT_RUN_TYPE=0
 #1 = manual, 2 = at shutdown
 
 
+function copyFiles(drivenumber)){ 
+
+
+}
+
+
+
 #check args
 if [[ $# -ne 0 ]]; then
     echo "No arguments expected, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
