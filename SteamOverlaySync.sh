@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/pkexec /bin/bash 
 
 #merge script
 
