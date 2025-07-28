@@ -60,8 +60,8 @@ fi
 
 
 #check if disk space in layer is less than free space on drive
-amtinLayer=$(du -c -d 0 /mnt/winOverlay/SSDWinUpper | grep "total" | awk '{printf "%s",$1}')
-amtFreeOnDrive=$(df --total | grep "/mnt/winOverlay/SSDWinLower" | awk '{printf "%s",$4}')
+amtinLayer=$(du -c -d 0 ${UPPERLOCATIONS[0]} | grep "total" | awk '{printf "%s",$1}')
+amtFreeOnDrive=$(df --total | grep "${LOWERLOCATIONS[0]}" | awk '{printf "%s",$4}')
 
 printf "Amount in layer: %s\n" "$amtinLayer" | systemd-cat -t sysDSyncSteamb4Shutdown
 printf "Amount free on drive: %s\n" "$amtFreeOnDrive" | systemd-cat -t sysDSyncSteamb4Shutdown
@@ -80,22 +80,22 @@ sudo umount /mnt/SSD2Win
 
 
 echo "unmount lower read only ntfs drives"  | systemd-cat -t sysDSyncSteamb4Shutdown
-sudo umount /mnt/winOverlay/SSDWinLower
-sudo umount /mnt/winOverlay/SSDWinLower
+sudo umount ${LOWERLOCATIONS[0]}
+sudo umount ${LOWERLOCATIONS[0]}
 
 #check that the the unmounting was successful
-if mountpoint /mnt/winOverlay/SSDWinLower; then
+if mountpoint ${LOWERLOCATIONS[0]}; then
     echo "SSDWinLower is still mounted, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
     exit 1
 fi
 
-if mountpoint /mnt/winOverlay/SSD2WinLower; then
+if mountpoint ${LOWERLOCATIONS[1]}; then
     echo "SSD2WinLower is still mounted, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
     exit 1
 fi
 
 #mount the upper layers read write
-sudo mount UUID=82C425D7C425CDEB /mnt/winOverlay/SSDWinLower -o rw,windows_names,prealloc
+sudo mount UUID=82C425D7C425CDEB ${LOWERLOCATIONS[0]} -o rw,windows_names,prealloc
 sleep 1
 
 if(echo $?); then
@@ -105,7 +105,7 @@ else
     exit 1
 fi
 
-sudo mount UUID=78DBFD1A57D3E447 /mnt/winOverlay/SSD2WinLower -o rw,windows_names,prealloc
+sudo mount UUID=78DBFD1A57D3E447 ${LOWERLOCATIONS[1]} -o rw,windows_names,prealloc
 sleep 1
 
 if(echo $?); then
@@ -118,25 +118,25 @@ fi
 
 
 echo "use overlayfs tools to merge changes"  | systemd-cat -t sysDSyncSteamb4Shutdown
-sudo $OVERLAYTOOLSLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/common/ -u /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/common/ -f
-sudo $OVERLAYTOOLSLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/workshop/ -u /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/workshop/ -f
-sudo $OVERLAYTOOLSLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/temp/ -u /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/temp/ -f
-sudo $OVERLAYTOOLSLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/downloads/ -u /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/downloads/ -f
-sudo $OVERLAYTOOLSLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/sourcemods/ -u /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/sourcemods/ -f
+sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${LOWERLOCATIONS[0]}/Media/Games/Steam/steamapps/common/ -u ${UPPERLOCATIONS[0]}/Media/Games/Steam/steamapps/common/ -f
+sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${LOWERLOCATIONS[0]}/Media/Games/Steam/steamapps/workshop/ -u ${UPPERLOCATIONS[0]}/Media/Games/Steam/steamapps/workshop/ -f
+sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${LOWERLOCATIONS[0]}/Media/Games/Steam/steamapps/temp/ -u ${UPPERLOCATIONS[0]}/Media/Games/Steam/steamapps/temp/ -f
+sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${LOWERLOCATIONS[0]}/Media/Games/Steam/steamapps/downloads/ -u ${UPPERLOCATIONS[0]}/Media/Games/Steam/steamapps/downloads/ -f
+sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${LOWERLOCATIONS[0]}/Media/Games/Steam/steamapps/sourcemods/ -u ${UPPERLOCATIONS[0]}/Media/Games/Steam/steamapps/sourcemods/ -f
 
-sudo rsync -avr /mnt/winOverlay/SSD2WinUpper/Media/Games/Steam/steamapps/*.acf /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/ --remove-source-files
+sudo rsync -avr ${UPPERLOCATIONS[1]}/Media/Games/Steam/steamapps/*.acf ${LOWERLOCATIONS[0]}/Media/Games/Steam/steamapps/ --remove-source-files
 
-suro rm -rf /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/*
+suro rm -rf ${UPPERLOCATIONS[0]}/Media/Games/Steam/steamapps/*
 
-sudo $OVERLAYTOOLSLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/common/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/common/ -f
-sudo $OVERLAYTOOLSLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/workshop/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/workshop/ -f
-sudo $OVERLAYTOOLSLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/temp/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/temp/ -f
-sudo $OVERLAYTOOLSLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/downloads/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/downloads/ -f
-sudo $OVERLAYTOOLSLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/sourcemods/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/sourcemods/ -f
+sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${LOWERLOCATIONS[1]}/SteamLibrary/steamapps/common/ -u ${UPPERLOCATIONS[1]}/SteamLibrary/steamapps/common/ -f
+sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${LOWERLOCATIONS[1]}/SteamLibrary/steamapps/workshop/ -u ${UPPERLOCATIONS[1]}/SteamLibrary/steamapps/workshop/ -f
+sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${LOWERLOCATIONS[1]}/SteamLibrary/steamapps/temp/ -u ${UPPERLOCATIONS[1]}/SteamLibrary/steamapps/temp/ -f
+sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${LOWERLOCATIONS[1]}/SteamLibrary/steamapps/downloads/ -u ${UPPERLOCATIONS[1]}/SteamLibrary/steamapps/downloads/ -f
+sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${LOWERLOCATIONS[1]}/SteamLibrary/steamapps/sourcemods/ -u ${UPPERLOCATIONS[1]}/SteamLibrary/steamapps/sourcemods/ -f
 
-sudo rsync -avr /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/*.acf /mnt/winOverlay/SSDWinLower/SteamLibrary/steamapps/ --remove-source-files
+sudo rsync -avr ${UPPERLOCATIONS[1]}/SteamLibrary/steamapps/*.acf ${LOWERLOCATIONS[0]}/SteamLibrary/steamapps/ --remove-source-files
 
-suro rm -rf /mnt/winOverlay/SSD2WinUpper/Media/Games/Steam/steamapps/*
+suro rm -rf ${UPPERLOCATIONS[1]}/Media/Games/Steam/steamapps/*
 
 echo "Any updates to Windows Steam Library have been merged onto the NTFS partition."  | systemd-cat -t sysDSyncSteamb4Shutdown
 exit 0
