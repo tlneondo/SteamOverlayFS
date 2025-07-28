@@ -16,6 +16,24 @@ fi
 # Get the directory of the current script and set the overlay location
 SCRIPT_DIR="$(dirname "$0")"
 OVERLAYLOCATION="$HOME/Projects/SteamOverlayFS/"
+SCRIPT_RUN_TYPE=0
+
+
+#check args
+if [[ $# -ne 0 ]]; then
+    echo "No arguments expected, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
+    exit 99
+fi
+
+if [[$@[0]] == "manual" || $@[0] == "--manual" || $@[0] == "-m"]]; then
+    echo "Running Steam Sync Manually" | systemd-cat -t sysDSyncSteamb4Shutdown
+    SCRIPT_RUN_TYPE=1
+fi
+
+if [[$@[0]] == "atshutdown" || $@[0] == "--atshutdown" || $@[0] == "-as"]]; then
+    echo "Running Steam Sync At Shutdown" | systemd-cat -t sysDSyncSteamb4Shutdown
+    SCRIPT_RUN_TYPE=2
+fi
 
 
 #check if disk space in layer is less than free space on drive
