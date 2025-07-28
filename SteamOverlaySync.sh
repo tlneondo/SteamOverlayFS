@@ -6,16 +6,36 @@
 
 #try catch for drive mounting
 
+#ENV variables for overlay and lower locations
+
+#set variables before run?
+
 echo "Script Start: Merge OverlayFS into NTFS Drive" | systemd-cat -t sysDSyncSteamb4Shutdown
 
 if [[ $EUID -ne 0 ]]; then
-   echo "This script must be run as root or with sudo. Exiting." | systemd-cat -t sysDSyncSteamb4Shutdown
+   echo "This script must be run as root or with sudo or pkexec. Exiting." | systemd-cat -t sysDSyncSteamb4Shutdown
    exit 1
 fi
 
 # Get the directory of the current script and set the overlay location
 SCRIPT_DIR="$(dirname "$0")"
-OVERLAYLOCATION="$HOME/Projects/SteamOverlayFS/"
+OVERLAYTOOLSLOCATION="$HOME/Projects/SteamOverlayFS/"
+
+UPPERLOCATIONS=(
+    "/mnt/winOverlay/SSDWinUpper"
+    "/mnt/winOverlay/SSD2WinUpper"
+)
+
+LOWERLOCATIONS=(
+    "/mnt/winOverlay/SSDWinLower"
+    "/mnt/winOverlay/SSD2WinLower"
+)
+
+MERGELOCATIONS=(
+    "/mnt/winOverlay/SSDWinMerge"
+    "/mnt/winOverlay/SSD2WinMerge"
+)
+
 SCRIPT_RUN_TYPE=0
 #1 = manual, 2 = at shutdown
 
@@ -96,21 +116,21 @@ fi
 
 
 echo "use overlayfs tools to merge changes"  | systemd-cat -t sysDSyncSteamb4Shutdown
-sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/common/ -u /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/common/ -f
-sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/workshop/ -u /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/workshop/ -f
-sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/temp/ -u /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/temp/ -f
-sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/downloads/ -u /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/downloads/ -f
-sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/sourcemods/ -u /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/sourcemods/ -f
+sudo $OVERLAYTOOLSLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/common/ -u /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/common/ -f
+sudo $OVERLAYTOOLSLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/workshop/ -u /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/workshop/ -f
+sudo $OVERLAYTOOLSLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/temp/ -u /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/temp/ -f
+sudo $OVERLAYTOOLSLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/downloads/ -u /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/downloads/ -f
+sudo $OVERLAYTOOLSLOCATION/overlay merge -l /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/sourcemods/ -u /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/sourcemods/ -f
 
 sudo rsync -avr /mnt/winOverlay/SSD2WinUpper/Media/Games/Steam/steamapps/*.acf /mnt/winOverlay/SSDWinLower/Media/Games/Steam/steamapps/ --remove-source-files
 
 suro rm -rf /mnt/winOverlay/SSDWinUpper/Media/Games/Steam/steamapps/*
 
-sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/common/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/common/ -f
-sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/workshop/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/workshop/ -f
-sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/temp/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/temp/ -f
-sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/downloads/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/downloads/ -f
-sudo $OVERLAYLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/sourcemods/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/sourcemods/ -f
+sudo $OVERLAYTOOLSLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/common/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/common/ -f
+sudo $OVERLAYTOOLSLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/workshop/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/workshop/ -f
+sudo $OVERLAYTOOLSLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/temp/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/temp/ -f
+sudo $OVERLAYTOOLSLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/downloads/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/downloads/ -f
+sudo $OVERLAYTOOLSLOCATION/overlay merge -l /mnt/winOverlay/SSD2WinLower/SteamLibrary/steamapps/sourcemods/ -u /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/sourcemods/ -f
 
 sudo rsync -avr /mnt/winOverlay/SSD2WinUpper/SteamLibrary/steamapps/*.acf /mnt/winOverlay/SSDWinLower/SteamLibrary/steamapps/ --remove-source-files
 
