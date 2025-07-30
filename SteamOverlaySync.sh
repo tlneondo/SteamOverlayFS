@@ -17,12 +17,10 @@ UPPERLOCATIONS=(
     "/mnt/winOverlay/SSDWinUpper"
     "/mnt/winOverlay/SSD2WinUpper"
 )
-
 LOWERLOCATIONS=(
     "/mnt/winOverlay/SSDWinLower"
     "/mnt/winOverlay/SSD2WinLower"
 )
-
 MERGELOCATIONS=(
     "/mnt/winOverlay/SSDWinMerge"
     "/mnt/winOverlay/SSD2WinMerge"
@@ -32,6 +30,7 @@ MERGELOCATIONS=(
 if [[ ${#UPPERLOCATIONS[@]} -ne ${#LOWERLOCATIONS[@]} ]] || [[ ${#UPPERLOCATIONS[@]} -ne ${#MERGELOCATIONS[@]} ]]; then
     echo "Error: UPPERLOCATIONS, LOWERLOCATIONS, and MERGELOCATIONS arrays must have the same length." | systemd-cat -t sysDSyncSteamb4Shutdown
     exit 1
+fi
 
 SCRIPT_RUN_TYPE=0
 #1 = manual, 2 = at shutdown
