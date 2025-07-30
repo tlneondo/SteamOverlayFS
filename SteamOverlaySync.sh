@@ -28,6 +28,11 @@ MERGELOCATIONS=(
     "/mnt/winOverlay/SSD2WinMerge"
 )
 
+#check that length of arrays are equal
+if [[ ${#UPPERLOCATIONS[@]} -ne ${#LOWERLOCATIONS[@]} ]] || [[ ${#UPPERLOCATIONS[@]} -ne ${#MERGELOCATIONS[@]} ]]; then
+    echo "Error: UPPERLOCATIONS, LOWERLOCATIONS, and MERGELOCATIONS arrays must have the same length." | systemd-cat -t sysDSyncSteamb4Shutdown
+    exit 1
+
 SCRIPT_RUN_TYPE=0
 #1 = manual, 2 = at shutdown
 
@@ -56,19 +61,33 @@ if [[$@[0]] == "atshutdown" || $@[0] == "--atshutdown" || $@[0] == "-as"]]; then
 fi
 
 
-#check if disk space in layer is less than free space on drive
-amtinLayer=$(du -c -d 0 ${UPPERLOCATIONS[0]} | grep "total" | awk '{printf "%s",$1}')
-amtFreeOnDrive=$(df --total | grep "${LOWERLOCATIONS[0]}" | awk '{printf "%s",$4}')
+#function for disk space check
+function checkDiskSpace(driveTop,driveLow) {
 
-printf "Amount in layer: %s\n" "$amtinLayer" | systemd-cat -t sysDSyncSteamb4Shutdown
-printf "Amount free on drive: %s\n" "$amtFreeOnDrive" | systemd-cat -t sysDSyncSteamb4Shutdown
+    #check if disk space in layer is less than free space on drive
+    amtinLayer=$(du -c -d 0 ${driveTop} | grep "total" | awk '{printf "%s",$1}')
+    amtFreeOnDrive=$(df --total | grep "${driveLow}" | awk '{printf "%s",$4}')
+
+    printf "Amount in layer: %s\n" "$amtinLayer" | systemd-cat -t sysDSyncSteamb4Shutdown
+    printf "Amount free on drive: %s\n" "$amtFreeOnDrive" | systemd-cat -t sysDSyncSteamb4Shutdown
 
 
-if [[ $amtinLayer -gt $amtFreeOnDrive ]]
-   then
-      echo "Not enough space on drive to merge changes, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
-      exit 1
-fi
+    if [[ $amtinLayer -gt $amtFreeOnDrive ]]
+    then
+        echo "Failing Merging %s into %s\n" "$driveTop" "$driveLow" | systemd-cat -t sysDSyncSteamb4Shutdown
+        echo "Not enough space on drive to merge changes, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
+        exit 1
+    fi
+
+}
+
+
+#check drive space in all layers
+for i in "${!UPPERLOCATIONS[@]}"; do
+    echo "Checking disk space for ${UPPERLOCATIONS[$i]} and ${LOWERLOCATIONS[$i]}" | systemd-cat -t sysDSyncSteamb4Shutdown
+    checkDiskSpace "${UPPERLOCATIONS[$i]}" "${LOWERLOCATIONS[$i]}"
+done
+
 
 
 echo "unmounting layers"  | systemd-cat -t sysDSyncSteamb4Shutdown
