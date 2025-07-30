@@ -1,12 +1,35 @@
 #!/usr/bin/pkexec /bin/bash 
 
 
-
 echo "Script Start: Merge OverlayFS into NTFS Drive" | systemd-cat -t sysDSyncSteamb4Shutdown
 
 if [[ $EUID -ne 0 ]]; then
    echo "This script must be run as root or with sudo or pkexec. Exiting." | systemd-cat -t sysDSyncSteamb4Shutdown
    exit 1
+fi
+
+SCRIPT_RUN_TYPE=0
+#1 = manual, 2 = at shutdown
+
+#check args
+if [[ $# -ne 0 ]]; then
+    echo "No arguments expected, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
+    exit 99
+fi
+
+if [[ "$1" == "manual" || "$1" == "--manual" || "$1" == "-m" ]]; then
+    echo "Running Steam Sync Manually" | systemd-cat -t sysDSyncSteamb4Shutdown
+    SCRIPT_RUN_TYPE=1
+fi
+
+if [[ "$1" == "atshutdown" || "$1" == "--atshutdown" || "$1" == "-as" ]]; then
+    echo "Running Steam Sync At Shutdown" | systemd-cat -t sysDSyncSteamb4Shutdown
+    SCRIPT_RUN_TYPE=2
+fi
+
+if [[ $SCRIPT_RUN_TYPE -eq 0 ]]; then
+    echo "No valid arguments provided, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
+    exit 100
 fi
 
 # Get the directory of the current script and set the overlay location
@@ -31,34 +54,6 @@ if [[ ${#UPPERLOCATIONS[@]} -ne ${#LOWERLOCATIONS[@]} ]] || [[ ${#UPPERLOCATIONS
     echo "Error: UPPERLOCATIONS, LOWERLOCATIONS, and MERGELOCATIONS arrays must have the same length." | systemd-cat -t sysDSyncSteamb4Shutdown
     exit 1
 fi
-
-SCRIPT_RUN_TYPE=0
-#1 = manual, 2 = at shutdown
-
-
-function copyFiles(drivenumber)){ 
-
-
-}
-
-
-
-#check args
-if [[ $# -ne 0 ]]; then
-    echo "No arguments expected, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
-    exit 99
-fi
-
-if [[$@[0]] == "manual" || $@[0] == "--manual" || $@[0] == "-m"]]; then
-    echo "Running Steam Sync Manually" | systemd-cat -t sysDSyncSteamb4Shutdown
-    SCRIPT_RUN_TYPE=1
-fi
-
-if [[$@[0]] == "atshutdown" || $@[0] == "--atshutdown" || $@[0] == "-as"]]; then
-    echo "Running Steam Sync At Shutdown" | systemd-cat -t sysDSyncSteamb4Shutdown
-    SCRIPT_RUN_TYPE=2
-fi
-
 
 #function for disk space check
 function checkDiskSpace(driveTop,driveLow) {
@@ -87,6 +82,20 @@ for i in "${!UPPERLOCATIONS[@]}"; do
     checkDiskSpace "${UPPERLOCATIONS[$i]}" "${LOWERLOCATIONS[$i]}"
 done
 
+
+function copyFiles(driveTop,driveLow){
+    echo "use overlayfs tools to merge changes from ${driveTop} to ${driveLow}"  | systemd-cat -t sysDSyncSteamb4Shutdown
+
+    sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/Media/Games/Steam/steamapps/common/ -u ${driveTop}/Media/Games/Steam/steamapps/common/ -f
+    sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/Media/Games/Steam/steamapps/workshop/ -u ${driveTop}/Media/Games/Steam/steamapps/workshop/ -f
+    sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/Media/Games/Steam/steamapps/temp/ -u ${driveTop}/Media/Games/Steam/steamapps/temp/ -f
+    sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/Media/Games/Steam/steamapps/downloads/ -u ${driveTop}/Media/Games/Steam/steamapps/downloads/ -f
+    sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/Media/Games/Steam/steamapps/sourcemods/ -u ${driveTop}/Media/Games/Steam/steamapps/sourcemods/ -f
+
+    sudo rsync -avr ${driveTop}/Media/Games/Steam/steamapps/*.acf ${driveLow}/Media/Games/Steam/steamapps/ --remove-source-files
+
+    suro rm -rf ${driveTop}/Media/Games/Steam/steamapps/*
+}
 
 
 echo "unmounting layers"  | systemd-cat -t sysDSyncSteamb4Shutdown
@@ -130,28 +139,14 @@ else
     exit 1
 fi
 
+#loop through the upper layers and merge them into the lower layers
+for i in "${!UPPERLOCATIONS[@]}"; do
+    echo "Merging changes from ${UPPERLOCATIONS[$i]} into ${LOWERLOCATIONS[$i]}" | systemd-cat -t sysDSyncSteamb4Shutdown
+    copyFiles "${UPPERLOCATIONS[$i]}" "${LOWERLOCATIONS[$i]}"
+done
 
 
-echo "use overlayfs tools to merge changes"  | systemd-cat -t sysDSyncSteamb4Shutdown
-sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${LOWERLOCATIONS[0]}/Media/Games/Steam/steamapps/common/ -u ${UPPERLOCATIONS[0]}/Media/Games/Steam/steamapps/common/ -f
-sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${LOWERLOCATIONS[0]}/Media/Games/Steam/steamapps/workshop/ -u ${UPPERLOCATIONS[0]}/Media/Games/Steam/steamapps/workshop/ -f
-sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${LOWERLOCATIONS[0]}/Media/Games/Steam/steamapps/temp/ -u ${UPPERLOCATIONS[0]}/Media/Games/Steam/steamapps/temp/ -f
-sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${LOWERLOCATIONS[0]}/Media/Games/Steam/steamapps/downloads/ -u ${UPPERLOCATIONS[0]}/Media/Games/Steam/steamapps/downloads/ -f
-sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${LOWERLOCATIONS[0]}/Media/Games/Steam/steamapps/sourcemods/ -u ${UPPERLOCATIONS[0]}/Media/Games/Steam/steamapps/sourcemods/ -f
 
-sudo rsync -avr ${UPPERLOCATIONS[1]}/Media/Games/Steam/steamapps/*.acf ${LOWERLOCATIONS[0]}/Media/Games/Steam/steamapps/ --remove-source-files
-
-suro rm -rf ${UPPERLOCATIONS[0]}/Media/Games/Steam/steamapps/*
-
-sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${LOWERLOCATIONS[1]}/SteamLibrary/steamapps/common/ -u ${UPPERLOCATIONS[1]}/SteamLibrary/steamapps/common/ -f
-sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${LOWERLOCATIONS[1]}/SteamLibrary/steamapps/workshop/ -u ${UPPERLOCATIONS[1]}/SteamLibrary/steamapps/workshop/ -f
-sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${LOWERLOCATIONS[1]}/SteamLibrary/steamapps/temp/ -u ${UPPERLOCATIONS[1]}/SteamLibrary/steamapps/temp/ -f
-sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${LOWERLOCATIONS[1]}/SteamLibrary/steamapps/downloads/ -u ${UPPERLOCATIONS[1]}/SteamLibrary/steamapps/downloads/ -f
-sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${LOWERLOCATIONS[1]}/SteamLibrary/steamapps/sourcemods/ -u ${UPPERLOCATIONS[1]}/SteamLibrary/steamapps/sourcemods/ -f
-
-sudo rsync -avr ${UPPERLOCATIONS[1]}/SteamLibrary/steamapps/*.acf ${LOWERLOCATIONS[0]}/SteamLibrary/steamapps/ --remove-source-files
-
-suro rm -rf ${UPPERLOCATIONS[1]}/Media/Games/Steam/steamapps/*
 
 echo "Any updates to Windows Steam Library have been merged onto the NTFS partition."  | systemd-cat -t sysDSyncSteamb4Shutdown
 exit 0
