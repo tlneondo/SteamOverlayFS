@@ -1,0 +1,15 @@
+#Todo
+
+#flow control for if running as service or manually
+
+#try catch for drive mounting
+
+#ENV variables for overlay and lower locations
+
+#set variables before run?
+
+#break drive space check into function
+
+#TODO Separate Upperlayer into snapshotable btrfs subvolume
+#snapshot upperlayer, mount snapshot as read only, then copy
+#this means I don't have to worry about the upper layer being modified while merging

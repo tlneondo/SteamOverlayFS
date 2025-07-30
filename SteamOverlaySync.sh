@@ -1,16 +1,6 @@
 #!/usr/bin/pkexec /bin/bash 
 
-#Todo
 
-#flow control for if running as service or manually
-
-#try catch for drive mounting
-
-#ENV variables for overlay and lower locations
-
-#set variables before run?
-
-#break drive space check into function
 
 echo "Script Start: Merge OverlayFS into NTFS Drive" | systemd-cat -t sysDSyncSteamb4Shutdown
 
