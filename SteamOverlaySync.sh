@@ -152,11 +152,23 @@ done
 echo "Any updates to Windows Steam Library have been merged onto the NTFS partition."  | systemd-cat -t sysDSyncSteamb4Shutdown
 
 
+if(SCRIPT_RUN_TYPE -eq 0); then
+    echo "Readying for System Shutdown" | systemd-cat -t sysDSyncSteamb4Shutdown
+    exit 0
+fi
+
+if(SCRIPT_RUN_TYPE -eq 1); then
+    echo "Remounting Drives" | systemd-cat -t sysDSyncSteamb4Shutdown
+    sudo mount -a
+    if [[ $? -ne 0 ]]; then
+        echo "Failed to remount drives, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
+        exit 1
+    fi
+fi
 
 
 
 
-exit 0
 
 
 
