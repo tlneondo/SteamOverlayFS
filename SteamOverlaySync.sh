@@ -50,10 +50,13 @@ if [[ ${#UPPERLOCATIONS[@]} -ne ${#LOWERLOCATIONS[@]} ]] || [[ ${#UPPERLOCATIONS
     exit 350
 fi
 
-
 #check drive space in all layers
+
+
 for i in "${!UPPERLOCATIONS[@]}"; do
+
     echo "Checking disk space for ${UPPERLOCATIONS[$i]} and ${LOWERLOCATIONS[$i]}" | systemd-cat -t sysDSyncSteamb4Shutdown
+
 
     #check if disk space in layer is less than free space on drive
     amtinLayer=$(du -c -d 0 ${UPPERLOCATIONS[$i]} | grep "total" | awk '{printf "%s",$1}')
