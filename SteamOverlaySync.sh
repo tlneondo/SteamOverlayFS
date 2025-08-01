@@ -48,6 +48,14 @@ MERGELOCATIONS=(
     "/mnt/winOverlay/SSDWinMerge"
     "/mnt/winOverlay/SSD2WinMerge"
 )
+OVERFSLOCATIONS=(
+    "/mnt//SSDWin"
+    "/mnt/SSD2Win"
+)
+UUIDLIST-{
+    "SSDWinLower"="82C425D7C425CDEB"
+    "SSD2WinLower"="78DBFD1A57D3E447"
+}
 
 #check that length of arrays are equal
 if [[ ${#UPPERLOCATIONS[@]} -ne ${#LOWERLOCATIONS[@]} ]] || [[ ${#UPPERLOCATIONS[@]} -ne ${#MERGELOCATIONS[@]} ]]; then
@@ -97,47 +105,40 @@ function copyFiles(driveTop,driveLow){
     suro rm -rf ${driveTop}/Media/Games/Steam/steamapps/*
 }
 
+function unmountFinalOverlays(finalMountPoints){
+    echo "Unmounting final mount poitns" | systemd-cat -t sysDSyncSteamb4Shutdown
 
-echo "unmounting layers"  | systemd-cat -t sysDSyncSteamb4Shutdown
-sudo umount /mnt/SSDWin
-sudo umount /mnt/SSD2Win
+    for mountPoint in "${finalMountPoints[@]}"; do
+        if mountpoint -q "$mountPoint"; then
+            sudo umount "$mountPoint"
+            if [[ $? -ne 0 ]]; then
+                echo "Failed to unmount $mountPoint, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
+                exit 1
+            fi
+        else
+            echo "$mountPoint is not mounted, skipping unmount" | systemd-cat -t sysDSyncSteamb4Shutdown
+        fi
+    done
+}
+
+function remountReadOnlyFS(ntfsROLocations,UUIDS){
+    echo "Unmounting RO NTFS mount POINTS" | systemd-cat -t sysDSyncSteamb4Shutdown
+
+    for mountPoint in "${ntfsROLocations[@]}"; do
+        if mountpoint -q "$mountPoint"; then
+            sudo mount UUID=$(UUIDS[@]) "$mountPoint" -o remount,rw,windows_names,prealloc
+            if [[ $? -ne 0 ]]; then
+                echo "Failed to remount $mountPoint, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
+                exit 1
+            fi
+    done
+}
 
 
-echo "unmount lower read only ntfs drives"  | systemd-cat -t sysDSyncSteamb4Shutdown
-sudo umount ${LOWERLOCATIONS[0]}
-sudo umount ${LOWERLOCATIONS[0]}
+unmountFinalOverlays "${OVERFSLOCATIONS[@]}"
+remountReadOnlyFS "${LOWERLOCATIONS[@],UUIDLIST[@]}"
 
-#check that the the unmounting was successful
-if mountpoint ${LOWERLOCATIONS[0]}; then
-    echo "SSDWinLower is still mounted, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
-    exit 1
-fi
-
-if mountpoint ${LOWERLOCATIONS[1]}; then
-    echo "SSD2WinLower is still mounted, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
-    exit 1
-fi
-
-#mount the upper layers read write
-sudo mount UUID=82C425D7C425CDEB ${LOWERLOCATIONS[0]} -o rw,windows_names,prealloc
 sleep 1
-
-if(echo $?); then
-    echo "Mounted SSDWinLower as read write, continuing" | systemd-cat -t sysDSyncSteamb4Shutdown
-else
-    echo "Failed to mount SSDWinLower as read write, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
-    exit 1
-fi
-
-sudo mount UUID=78DBFD1A57D3E447 ${LOWERLOCATIONS[1]} -o rw,windows_names,prealloc
-sleep 1
-
-if(echo $?); then
-    echo "Mounted SSD2WinLower as read write, continuing" | systemd-cat -t sysDSyncSteamb4Shutdown
-else
-    echo "Failed to mount SSD2WinLower as read write, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
-    exit 1
-fi
 
 #loop through the upper layers and merge them into the lower layers
 for i in "${!UPPERLOCATIONS[@]}"; do
@@ -149,6 +150,12 @@ done
 
 
 echo "Any updates to Windows Steam Library have been merged onto the NTFS partition."  | systemd-cat -t sysDSyncSteamb4Shutdown
+
+
+
+
+
+
 exit 0
 
 
