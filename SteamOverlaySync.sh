@@ -50,31 +50,25 @@ if [[ ${#UPPERLOCATIONS[@]} -ne ${#LOWERLOCATIONS[@]} ]] || [[ ${#UPPERLOCATIONS
     exit 350
 fi
 
-#function for disk space check
-function checkDiskSpace(driveTop,driveLow){
-    echo "Checking disk space for ${driveTop} and ${driveLow}" | systemd-cat -t sysDSyncSteamb4Shutdown
-
-    #check if disk space in layer is less than free space on drive
-    amtinLayer=$(du -c -d 0 ${driveTop} | grep "total" | awk '{printf "%s",$1}')
-    amtFreeOnDrive=$(df --total | grep "${driveLow}" | awk '{printf "%s",$4}')
-
-    printf "Amount in layer: %s\n" "$amtinLayer" | systemd-cat -t sysDSyncSteamb4Shutdown
-    printf "Amount free on drive: %s\n" "$amtFreeOnDrive" | systemd-cat -t sysDSyncSteamb4Shutdown
-
-
-    if [[ $amtinLayer -gt $amtFreeOnDrive ]]
-    then
-        echo "Failing Merging %s into %s\n" "$driveTop" "$driveLow" | systemd-cat -t sysDSyncSteamb4Shutdown
-        echo "Not enough space on drive to merge changes, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
-        exit 22
-    fi
-
-}
 
 #check drive space in all layers
 for i in "${!UPPERLOCATIONS[@]}"; do
     echo "Checking disk space for ${UPPERLOCATIONS[$i]} and ${LOWERLOCATIONS[$i]}" | systemd-cat -t sysDSyncSteamb4Shutdown
-    checkDiskSpace "${UPPERLOCATIONS[$i]}" "${LOWERLOCATIONS[$i]}"
+
+    #check if disk space in layer is less than free space on drive
+    amtinLayer=$(du -c -d 0 ${UPPERLOCATIONS[$i]} | grep "total" | awk '{printf "%s",$1}')
+    amtFreeOnDrive=$(df --total | grep "${LOWERLOCATIONS[$i]}" | awk '{printf "%s",$4}')
+
+    printf "Amount in layer: %s\n" "$amtinLayer" | systemd-cat -t sysDSyncSteamb4Shutdown
+    printf "Amount free on drive: %s\n" "$amtFreeOnDrive" | systemd-cat -t sysDSyncSteamb4Shutdown
+
+    if [[ $amtinLayer -gt $amtFreeOnDrive ]]
+    then
+        echo "Failing Merging %s into %s\n" "${UPPERLOCATIONS[$i]}" "${LOWERLOCATIONS[$i]}" | systemd-cat -t sysDSyncSteamb4Shutdown
+        echo "Not enough space on drive to merge changes, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
+        exit 22
+    fi
+
 done
 
 
