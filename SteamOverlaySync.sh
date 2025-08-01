@@ -4,7 +4,7 @@ echo "Script Start: Merge OverlayFS into NTFS Drive" | systemd-cat -t sysDSyncSt
 
 if [[ $EUID -ne 0 ]]; then
    echo "This script must be run as root or with sudo or pkexec. Exiting." | systemd-cat -t sysDSyncSteamb4Shutdown
-   exit 1
+   exit 200
 fi
 
 SCRIPT_RUN_TYPE=0
@@ -33,7 +33,6 @@ fi
 
 # Get the directory of the current script and set the overlay location
 SCRIPT_DIR="$(dirname "$0")"
-OVERLAYTOOLSLOCATION="$HOME/Projects/SteamOverlayFS/"
 CONFIGLOCATION="$HOME/.config/SteamOverlaySync/"
 
 #load configuration file
@@ -41,18 +40,19 @@ if [[ -f "$CONFIGLOCATION/SteamOverlaySync.env" ]]; then
     source "$CONFIGLOCATION/SteamOverlaySync.env"
 else
     echo "Configuration file not found at $CONFIGLOCATION/SteamOverlaySync.env, exiting." | systemd-cat -t sysDSyncSteamb4Shutdown
-    exit 1
+    exit 300
 fi
 
 
 #check that length of arrays are equal
 if [[ ${#UPPERLOCATIONS[@]} -ne ${#LOWERLOCATIONS[@]} ]] || [[ ${#UPPERLOCATIONS[@]} -ne ${#MERGELOCATIONS[@]} ]]; then
     echo "Error: UPPERLOCATIONS, LOWERLOCATIONS, and MERGELOCATIONS arrays must have the same length." | systemd-cat -t sysDSyncSteamb4Shutdown
-    exit 1
+    exit 350
 fi
 
 #function for disk space check
-function checkDiskSpace(driveTop,driveLow) {
+function checkDiskSpace(driveTop,driveLow){
+    echo "Checking disk space for ${driveTop} and ${driveLow}" | systemd-cat -t sysDSyncSteamb4Shutdown
 
     #check if disk space in layer is less than free space on drive
     amtinLayer=$(du -c -d 0 ${driveTop} | grep "total" | awk '{printf "%s",$1}')
@@ -66,7 +66,7 @@ function checkDiskSpace(driveTop,driveLow) {
     then
         echo "Failing Merging %s into %s\n" "$driveTop" "$driveLow" | systemd-cat -t sysDSyncSteamb4Shutdown
         echo "Not enough space on drive to merge changes, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
-        exit 1
+        exit 22
     fi
 
 }
