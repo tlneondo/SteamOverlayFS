@@ -1,6 +1,5 @@
 #!/usr/bin/pkexec /bin/bash 
 
-
 echo "Script Start: Merge OverlayFS into NTFS Drive" | systemd-cat -t sysDSyncSteamb4Shutdown
 
 if [[ $EUID -ne 0 ]]; then
@@ -49,10 +48,10 @@ MERGELOCATIONS=(
     "/mnt/winOverlay/SSD2WinMerge"
 )
 OVERFSLOCATIONS=(
-    "/mnt//SSDWin"
+    "/mnt/SSDWin"
     "/mnt/SSD2Win"
 )
-UUIDLIST-{
+UUIDLIST={
     "SSDWinLower"="82C425D7C425CDEB"
     "SSD2WinLower"="78DBFD1A57D3E447"
 }
@@ -82,7 +81,6 @@ function checkDiskSpace(driveTop,driveLow) {
     fi
 
 }
-
 
 #check drive space in all layers
 for i in "${!UPPERLOCATIONS[@]}"; do
@@ -134,7 +132,6 @@ function remountReadOnlyFS(ntfsROLocations,UUIDS){
     done
 }
 
-
 unmountFinalOverlays "${OVERFSLOCATIONS[@]}"
 remountReadOnlyFS "${LOWERLOCATIONS[@],UUIDLIST[@]}"
 
@@ -145,10 +142,6 @@ for i in "${!UPPERLOCATIONS[@]}"; do
     echo "Merging changes from ${UPPERLOCATIONS[$i]} into ${LOWERLOCATIONS[$i]}" | systemd-cat -t sysDSyncSteamb4Shutdown
     copyFiles "${UPPERLOCATIONS[$i]}" "${LOWERLOCATIONS[$i]}"
 done
-
-
-
-
 echo "Any updates to Windows Steam Library have been merged onto the NTFS partition."  | systemd-cat -t sysDSyncSteamb4Shutdown
 
 
