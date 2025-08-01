@@ -34,27 +34,16 @@ fi
 # Get the directory of the current script and set the overlay location
 SCRIPT_DIR="$(dirname "$0")"
 OVERLAYTOOLSLOCATION="$HOME/Projects/SteamOverlayFS/"
+CONFIGLOCATION="$HOME/.config/SteamOverlaySync/"
 
-UPPERLOCATIONS=(
-    "/mnt/winOverlay/SSDWinUpper"
-    "/mnt/winOverlay/SSD2WinUpper"
-)
-LOWERLOCATIONS=(
-    "/mnt/winOverlay/SSDWinLower"
-    "/mnt/winOverlay/SSD2WinLower"
-)
-MERGELOCATIONS=(
-    "/mnt/winOverlay/SSDWinMerge"
-    "/mnt/winOverlay/SSD2WinMerge"
-)
-OVERFSLOCATIONS=(
-    "/mnt/SSDWin"
-    "/mnt/SSD2Win"
-)
-UUIDLIST={
-    "SSDWinLower"="82C425D7C425CDEB"
-    "SSD2WinLower"="78DBFD1A57D3E447"
-}
+#load configuration file
+if [[ -f "$CONFIGLOCATION/SteamOverlaySync.env" ]]; then
+    source "$CONFIGLOCATION/SteamOverlaySync.env"
+else
+    echo "Configuration file not found at $CONFIGLOCATION/SteamOverlaySync.env, exiting." | systemd-cat -t sysDSyncSteamb4Shutdown
+    exit 1
+fi
+
 
 #check that length of arrays are equal
 if [[ ${#UPPERLOCATIONS[@]} -ne ${#LOWERLOCATIONS[@]} ]] || [[ ${#UPPERLOCATIONS[@]} -ne ${#MERGELOCATIONS[@]} ]]; then
