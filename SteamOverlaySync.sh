@@ -7,6 +7,7 @@ if [[ $EUID -ne 0 ]]; then
    exit 200
 fi
 
+
 SCRIPT_RUN_TYPE=0
 #1 = manual, 2 = at shutdown
 
@@ -36,11 +37,22 @@ SCRIPT_DIR="$(dirname "$0")"
 CONFIGLOCATION="$HOME/.config/SteamOverlaySync/"
 
 #load configuration file
-if [[ -f "$CONFIGLOCATION/SteamOverlaySync.env" ]]; then
-    source "$CONFIGLOCATION/SteamOverlaySync.env"
+
+if [[ "$OVERRIDE_CONFIG_FILE" -eq 1 ]]; then
+    echo "Loading non-default config file" | systemd-cat -t sysDSyncSteamb4Shutdown
+    if [[ -f "$SCRIPT_DIR/OtherConfig.env" ]]; then
+        source "$SCRIPT_DIR/OtherConfig.env"
+    else
+        echo "Configuration file not found at $SCRIPT_DIR/OtherConfig.env, exiting." | systemd-cat -t sysDSyncSteamb4Shutdown
+        exit 300
+    fi
 else
-    echo "Configuration file not found at $CONFIGLOCATION/SteamOverlaySync.env, exiting." | systemd-cat -t sysDSyncSteamb4Shutdown
-    exit 300
+    if [[ -f "$CONFIGLOCATION/SteamOverlaySync.env" ]]; then
+        source "$CONFIGLOCATION/SteamOverlaySync.env"
+    else
+        echo "Configuration file not found at $CONFIGLOCATION/SteamOverlaySync.env, exiting." | systemd-cat -t sysDSyncSteamb4Shutdown
+        exit 300
+    fi
 fi
 
 
@@ -159,7 +171,6 @@ if(SCRIPT_RUN_TYPE -eq 1); then
         exit 1
     fi
 fi
-
 
 
 
