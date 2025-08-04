@@ -75,7 +75,12 @@ for i in "${!UPPERLOCATIONS[@]}"; do
 done
 
 
-function copyFiles(driveTop,driveLow){
+function copyFiles(){
+    local params=("$@")
+    driveTop=${params[0]}
+    driveLow=${params[1]}
+
+
     echo "use overlayfs tools to merge changes from ${driveTop} to ${driveLow}"  | systemd-cat -t sysDSyncSteamb4Shutdown
 
     sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/Media/Games/Steam/steamapps/common/ -u ${driveTop}/Media/Games/Steam/steamapps/common/ -f
@@ -89,7 +94,10 @@ function copyFiles(driveTop,driveLow){
     suro rm -rf ${driveTop}/Media/Games/Steam/steamapps/*
 }
 
-function unmountFinalOverlays(finalMountPoints){
+function unmountFinalOverlays(){
+    local params=("$@")
+    finalMountPoints=${params[0]}
+
     echo "Unmounting final mount poitns" | systemd-cat -t sysDSyncSteamb4Shutdown
 
     for mountPoint in "${finalMountPoints[@]}"; do
@@ -105,21 +113,28 @@ function unmountFinalOverlays(finalMountPoints){
     done
 }
 
-function remountReadOnlyFS(ntfsROLocations,UUIDS){
+function remountReadOnlyFS(){
+    local params=("$@")
+    ntfsROLocations=${params[0]}
+    UUIDS=${params[1]}
+
     echo "Unmounting RO NTFS mount POINTS" | systemd-cat -t sysDSyncSteamb4Shutdown
 
     for mountPoint in "${ntfsROLocations[@]}"; do
         if mountpoint -q "$mountPoint"; then
-            sudo mount UUID=$(UUIDS[@]) "$mountPoint" -o remount,rw,windows_names,prealloc
+            sudo umount "$mountPoint"
             if [[ $? -ne 0 ]]; then
-                echo "Failed to remount $mountPoint, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
+                echo "Failed to unmount $mountPoint, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
                 exit 1
             fi
+        else
+            echo "$mountPoint is not mounted, skipping unmount" | systemd-cat -t sysDSyncSteamb4Shutdown
+        fi
     done
 }
 
 unmountFinalOverlays "${OVERFSLOCATIONS[@]}"
-remountReadOnlyFS "${LOWERLOCATIONS[@],UUIDLIST[@]}"
+remountReadOnlyFS "${LOWERLOCATIONS[@]}" "${UUIDLIST[@]}"
 
 sleep 1
 
