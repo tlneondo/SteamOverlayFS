@@ -11,3 +11,6 @@
 #TODO Separate Upperlayer into snapshotable btrfs subvolume
 #snapshot upperlayer, mount snapshot as read only, then copy
 #this means I don't have to worry about the upper layer being modified while merging
+
+
+#have overlay tool create directory to make sure they exist

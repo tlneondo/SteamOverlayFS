@@ -92,18 +92,33 @@ function copyFiles(){
     driveTop=${params[0]}
     driveLow=${params[1]}
 
+    #makedirectories if they do not exist
+    sudo mkdir -p ${driveLow}/common/
+    sudo mkdir -p ${driveTop}/common/
 
-    echo "use overlayfs tools to merge changes from ${driveTop} to ${driveLow}"  | systemd-cat -t sysDSyncSteamb4Shutdown
+    sudo mkdir -p ${driveLow}/workshop/
+    sudo mkdir -p ${driveTop}/workshop/
 
-    sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/Media/Games/Steam/steamapps/common/ -u ${driveTop}/Media/Games/Steam/steamapps/common/ -f
-    sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/Media/Games/Steam/steamapps/workshop/ -u ${driveTop}/Media/Games/Steam/steamapps/workshop/ -f
-    sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/Media/Games/Steam/steamapps/temp/ -u ${driveTop}/Media/Games/Steam/steamapps/temp/ -f
-    sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/Media/Games/Steam/steamapps/downloads/ -u ${driveTop}/Media/Games/Steam/steamapps/downloads/ -f
-    sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/Media/Games/Steam/steamapps/sourcemods/ -u ${driveTop}/Media/Games/Steam/steamapps/sourcemods/ -f
+    sudo mkdir -p ${driveLow}/temp/
+    sudo mkdir -p ${driveTop}/temp
 
-    sudo rsync -avr ${driveTop}/Media/Games/Steam/steamapps/*.acf ${driveLow}/Media/Games/Steam/steamapps/ --remove-source-files
+    sudo mkdir -p ${driveLow}/downloads/
+    sudo mkdir -p ${driveTop}/downloads/
 
-    suro rm -rf ${driveTop}/Media/Games/Steam/steamapps/*
+    sudo mkdir -p ${driveLow}/sourcemods/
+    sudo mkdir -p ${driveTop}/sourcemods/
+
+
+
+    sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/common/ -u ${driveTop}/common/ -f
+    sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/workshop/ -u ${driveTop}/workshop/ -f
+    sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/temp/ -u ${driveTop}/temp/ -f
+    sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/downloads/ -u ${driveTop}/downloads/  -f
+    sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/sourcemods/ -u ${driveTop}/sourcemods/  -f
+
+    sudo rsync -avr ${driveTop}/*.acf ${driveLow}/
+
+    sudo rm -rf ${driveTop}/*
 }
 
 function unmountFinalOverlays(){
