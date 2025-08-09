@@ -14,3 +14,15 @@
 
 
 #have overlay tool create directory to make sure they exist
+
+
+
+###Splitting the project into modules
+
+    Copy Script
+
+
+    Steam Install Tracking
+
+
+    Execution Control / Service

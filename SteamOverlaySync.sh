@@ -1,4 +1,9 @@
-#!/usr/bin/pkexec /bin/bash 
+#!/usr/bin/pkexec /bin/bash
+
+source ./SyncConfig.env
+source ./copyfunction.env
+source ./drivemounting.env
+source ./SteamACFtracking.env
 
 echo "Script Start: Merge OverlayFS into NTFS Drive" | systemd-cat -t sysDSyncSteamb4Shutdown
 
@@ -87,78 +92,6 @@ for i in "${!UPPERLOCATIONS[@]}"; do
 done
 
 
-function copyFiles(){
-    local params=("$@")
-    driveTop=${params[0]}
-    driveLow=${params[1]}
-
-    #makedirectories if they do not exist
-    sudo mkdir -p ${driveLow}/common/
-    sudo mkdir -p ${driveTop}/common/
-
-    sudo mkdir -p ${driveLow}/workshop/
-    sudo mkdir -p ${driveTop}/workshop/
-
-    sudo mkdir -p ${driveLow}/temp/
-    sudo mkdir -p ${driveTop}/temp
-
-    sudo mkdir -p ${driveLow}/downloads/
-    sudo mkdir -p ${driveTop}/downloads/
-
-    sudo mkdir -p ${driveLow}/sourcemods/
-    sudo mkdir -p ${driveTop}/sourcemods/
-
-
-
-    sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/common/ -u ${driveTop}/common/ -f
-    sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/workshop/ -u ${driveTop}/workshop/ -f
-    sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/temp/ -u ${driveTop}/temp/ -f
-    sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/downloads/ -u ${driveTop}/downloads/  -f
-    sudo $OVERLAYTOOLSLOCATION/overlay merge -l ${driveLow}/sourcemods/ -u ${driveTop}/sourcemods/  -f
-
-    sudo rsync -avr ${driveTop}/*.acf ${driveLow}/
-
-    sudo rm -rf ${driveTop}/*
-}
-
-function unmountFinalOverlays(){
-    local params=("$@")
-    finalMountPoints=${params[0]}
-
-    echo "Unmounting final mount poitns" | systemd-cat -t sysDSyncSteamb4Shutdown
-
-    for mountPoint in "${finalMountPoints[@]}"; do
-        if mountpoint -q "$mountPoint"; then
-            sudo umount "$mountPoint"
-            if [[ $? -ne 0 ]]; then
-                echo "Failed to unmount $mountPoint, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
-                exit 1
-            fi
-        else
-            echo "$mountPoint is not mounted, skipping unmount" | systemd-cat -t sysDSyncSteamb4Shutdown
-        fi
-    done
-}
-
-function remountReadOnlyFS(){
-    local params=("$@")
-    ntfsROLocations=${params[0]}
-    UUIDS=${params[1]}
-
-    echo "Unmounting RO NTFS mount POINTS" | systemd-cat -t sysDSyncSteamb4Shutdown
-
-    for mountPoint in "${ntfsROLocations[@]}"; do
-        if mountpoint -q "$mountPoint"; then
-            sudo umount "$mountPoint"
-            if [[ $? -ne 0 ]]; then
-                echo "Failed to unmount $mountPoint, exiting" | systemd-cat -t sysDSyncSteamb4Shutdown
-                exit 1
-            fi
-        else
-            echo "$mountPoint is not mounted, skipping unmount" | systemd-cat -t sysDSyncSteamb4Shutdown
-        fi
-    done
-}
 
 unmountFinalOverlays "${OVERFSLOCATIONS[@]}"
 remountReadOnlyFS "${LOWERLOCATIONS[@]}" "${UUIDLIST[@]}"
