@@ -24,5 +24,34 @@
 
     Steam Install Tracking
 
+        track shortcuts.vdf
+            redirect shortcuts to reboot script
+
 
     Execution Control / Service
+
+    Grub entry tracking
+
+
+
+FSTAB currently working:
+
+#mounts for lower readonly ntfs bottom layers
+UUID=82C425D7C425CDEB /mnt/winOverlay/SSDWinLower ntfs defaults,windows_names,prealloc 0 0
+UUID=78DBFD1A57D3E447 /mnt/winOverlay/SSD2WinLower ntfs defaults,windows_names,prealloc 0 0
+
+
+#overlays
+overlay /mnt/SSDWin overlay noauto,x-systemd.automount,defaults,lowerdir=/mnt/winOverlay/SSDWinLower,upperdir=/mnt/winOverlay/SSDWinUpper,workdir=/mnt/winOverlay/SSDWinMerge
+
+overlay /mnt/SSD2Win overlay noauto,x-systemd.automount,defaults,lowerdir=/mnt/winOverlay/SSD2WinLower,upperdir=/mnt/winOverlay/SSD2WinUpper,workdir=/mnt/winOverlay/SSD2WinMerge
+these options let the mount work 
+
+
+
+Then this command:
+
+sudo mount -a && sudo systemctl daemon-reload && sudo systemctl restart local-fs.target
+
+
+Is needed to bring the overlays back up
