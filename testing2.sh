@@ -14,6 +14,8 @@ lengthOver=${#OVERFSLOCATIONS[*]}
 sync
 
 for ((k=0; k < lengthOver; k++ )); do
+    automntName=$(sed 's|/|-|g' <<< "$OVERFSLOCATIONS[$k]")
+    sudo systemd mask $automntName.automount
     sudo umount ${OVERFSLOCATIONS[$k]}
 done
 
