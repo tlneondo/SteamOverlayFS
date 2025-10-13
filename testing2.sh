@@ -9,13 +9,15 @@ killall steam
 
 sleep 5
 
+#mask systemd mounting
+sudo systemctl unmask systemd-remount-fs.service
+
 lengthOver=${#OVERFSLOCATIONS[*]}
 
 sync
 
 for ((k=0; k < lengthOver; k++ )); do
-    automntName=$(sed 's|/|-|g' <<< "$OVERFSLOCATIONS[$k]")
-    sudo systemd mask $automntName.automount
+    sudo systemctl --runtime mask "$(systemd-escape -p --suffix=automount ${OVERFSLOCATIONS[$k]})"
     sudo umount ${OVERFSLOCATIONS[$k]}
 done
 
