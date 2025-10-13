@@ -11,6 +11,8 @@ sleep 5
 
 lengthOver=${#OVERFSLOCATIONS[*]}
 
+sync
+
 for ((k=0; k < lengthOver; k++ )); do
     sudo umount ${OVERFSLOCATIONS[$k]}
 done
