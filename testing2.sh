@@ -18,6 +18,8 @@ sleep 5
 
 length=${#UPPERLOCATIONS[*]}
 
+
+#generate scripts
 for ((i=0; i < length; i++ )); do
     generateScripts ${UPPERLOCATIONS[$i]} ${LOWERLOCATIONS[$i]}
 done
@@ -41,6 +43,10 @@ done
 for file in overlay-tools*.sh; do
     sudo bash ./$file
     sudo bash ./$file.remove.sh
+
+    sudo sync
+    sudo sync
+
 done
 
 #delete all in UPPERLOCATIONS
@@ -59,3 +65,5 @@ done
 
 
 sudo mount -a && sudo systemctl daemon-reload && sudo systemctl restart local-fs.target
+sudo sync
+sudo sync
