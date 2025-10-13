@@ -12,21 +12,14 @@ sleep 5
 #mask systemd mounting
 sudo systemctl mask systemd-remount-fs.service
 
-lengthOver=${#OVERFSLOCATIONS[*]}
-
-sync
-
-for ((k=0; k < lengthOver; k++ )); do
-    sudo systemctl --runtime mask "$(systemd-escape -p --suffix=automount ${OVERFSLOCATIONS[$k]})"
-    sudo umount ${OVERFSLOCATIONS[$k]}
-done
+unmountFinalOverlays "${OVERFSLOCATIONS[@]}"
 
 sleep 5
 
 length=${#UPPERLOCATIONS[*]}
 
 for ((i=0; i < length; i++ )); do
-    copyFiles ${UPPERLOCATIONS[$i]} ${LOWERLOCATIONS[$i]}
+    generateScripts ${UPPERLOCATIONS[$i]} ${LOWERLOCATIONS[$i]}
 done
 
 
