@@ -29,24 +29,14 @@ sudo chown $USER:$USER ./overlay-tools*.sh
 
 
 #remove any linux related folders from scripts
-for file in overlay-tools*.sh; do
-sed -i '/steamapps\/compatdata/d' ./$file
-sed -i '/steamapps\/shadercache/d' ./$file
-sed -i '/steamapps\/temp/d' ./$file
-
-#split into remove and copy scripts
-grep 'rm' ./$file > ./$file.remove.sh
-sed -i 'rm/d' ./$file
-done
+processScripts
 
 #run scripts
 for file in overlay-tools*.sh; do
     sudo bash ./$file
     sudo bash ./$file.remove.sh
-
-    sudo sync
-    sudo sync
-
+    sync
+    sync
 done
 
 #delete all in UPPERLOCATIONS
@@ -63,7 +53,8 @@ for ((k=0; k < lengthOver; k++ )); do
     sudo systemctl --runtime unmask "$(systemd-escape -p --suffix=automount ${OVERFSLOCATIONS[$k]})"
 done
 
-
+sync
+sync
 sudo mount -a && sudo systemctl daemon-reload && sudo systemctl restart local-fs.target
-sudo sync
-sudo sync
+sync
+sync
