@@ -12,11 +12,18 @@ sleep 5
 #mask systemd mounting
 sudo systemctl mask systemd-remount-fs.service
 
-unmountFinalOverlays "${OVERFSLOCATIONS[@]}"
+lengthOver=${#OVERFSLOCATIONS[*]}
+
+for ((i=0; i < lengthOver; i++ )); do
+    unmountFinalOverlays "${OVERFSLOCATIONS[$i]}"
+done
 
 sleep 5
 
+#prompt user if un
+
 length=${#UPPERLOCATIONS[*]}
+lengthOver=${#OVERFSLOCATIONS[*]}
 
 
 #generate scripts
@@ -34,21 +41,21 @@ processScripts
 #run scripts
 for file in overlay-tools*.sh; do
     sudo bash ./$file
-    sudo bash ./$file.remove.sh
+    #sudo bash ./$file.remove.sh
     sync
     sync
 done
 
 #delete all in UPPERLOCATIONS
-#for ((i=0; i < length; i++ )); do
-#    deleteUppers ${UPPERLOCATIONS[$i]}
-#done
+for ((i=0; i < length; i++ )); do
+    deleteUppers ${UPPERLOCATIONS[$i]}
+done
 
 sleep 5
 
 
 #unmask
-sudo systemctl unmask  systemd-remount-fs.service
+sudo systemctl unmask   systemd-remount-fs.service
 for ((k=0; k < lengthOver; k++ )); do
     sudo systemctl --runtime unmask "$(systemd-escape -p --suffix=automount ${OVERFSLOCATIONS[$k]})"
 done
