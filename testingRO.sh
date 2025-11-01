@@ -20,29 +20,42 @@ lengthOver=${#OVERFSLOCATIONS[*]}
 lengthLower=${#LOWERLOCATIONS[*]}
 
 #remount ro ntfs drives as readable
-
-
-
 for ((i=0; i < lengthLower; i++ )); do
-    echo ${i}
-    echo ${LOWERLOCATIONS[$i]}
     remountROLowerasReadable "${LOWERLOCATIONS[$i]}"
 done
 
 
-
-#unmask lower locations
-sudo systemctl unmask   systemd-remount-fs.service
-for ((k=0; k < lengthLower; k++ )); do
-    sudo systemctl --runtime unmask "$(systemd-escape -p --suffix=automount ${LOWERLOCATIONS[$k]})"
+#generate scripts
+for ((i=0; i < length; i++ )); do
+    generateScripts ${UPPERLOCATIONS[$i]} ${LOWERLOCATIONS[$i]}
 done
 
+
+sudo chown $USER:$USER ./overlay-tools*.sh
+
+
+#remove any linux related folders from scripts
+processScripts
+
+#run scripts
+for file in overlay-tools*.sh; do
+    sudo bash ./$file
+    #sudo bash ./$file.remove.sh
+    sync
+    sync
+done
+
+#delete all in UPPERLOCATIONS
+for ((i=0; i < length; i++ )); do
+    deleteUppers ${UPPERLOCATIONS[$i]}
+done
+
+sleep 5
 
 #unmask service
 sudo systemctl unmask systemd-remount-fs.service
 
 #unmask final overlays
-sudo systemctl unmask   systemd-remount-fs.service
 for ((k=0; k < lengthOver; k++ )); do
     sudo systemctl --runtime unmask "$(systemd-escape -p --suffix=automount ${OVERFSLOCATIONS[$k]})"
 done
