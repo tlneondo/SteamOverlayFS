@@ -3,6 +3,8 @@ source ./copyfunction.env
 source ./drivemounting.env
 source ./SteamACFtracking.env
 
+sudo rm ./overlay-tools*.sh
+
 sudo systemctl mask systemd-remount-fs.service
 
 
