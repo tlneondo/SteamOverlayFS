@@ -1,20 +1,18 @@
-source ./SyncConfig.env
-source ./copyfunction.env
-source ./drivemounting.env
-source ./SteamACFtracking.env
-source ./breakoutFunc.env
+source ../config/SyncConfig.env
+source ../BashScripts/copyfunction.env
+source ../BashScripts/drivemounting.env
+source ../BashScripts/breakoutFunc.env
 
 
+cleanupOldScripts
 
-sudo rm ./overlay-tools*.sh
+killPeskyProcesses
 
+
+#mask systemd mounting
 sudo systemctl mask systemd-remount-fs.service
 
-
-
-
 #unmount overlays
-
 for ((i=0; i < lengthOver; i++ )); do
     unmountFinalOverlays "${OVERFSLOCATIONS[$i]}"
 done

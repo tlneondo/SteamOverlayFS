@@ -1,15 +1,13 @@
-source ./SyncConfig.env
-source ./copyfunction.env
-source ./drivemounting.env
-source ./SteamACFtracking.env
-source ./breakoutFunc.env
+source ../config/SyncConfig.env
+source ../BashScripts/copyfunction.env
+source ../BashScripts/drivemounting.env
+source ../BashScripts/breakoutFunc.env
 
 
-sudo rm ./overlay-tools*.sh
+cleanupOldScripts
 
-killall steam
+killPeskyProcesses
 
-sleep 5
 
 #mask systemd mounting
 sudo systemctl mask systemd-remount-fs.service
