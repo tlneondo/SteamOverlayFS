@@ -55,3 +55,7 @@ sudo mount -a && sudo systemctl daemon-reload && sudo systemctl restart local-fs
 
 
 Is needed to bring the overlays back up
+
+parse config from reading /etc/FSTAB
+
+fix errors by searching lower mount for mistakenly copied whiteout files
