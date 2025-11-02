@@ -2,13 +2,16 @@ source ./SyncConfig.env
 source ./copyfunction.env
 source ./drivemounting.env
 source ./SteamACFtracking.env
+source ./breakoutFunction.env
+
+
 
 sudo rm ./overlay-tools*.sh
 
 sudo systemctl mask systemd-remount-fs.service
 
 
-lengthOver=${#OVERFSLOCATIONS[*]}
+
 
 #unmount overlays
 
@@ -17,9 +20,7 @@ for ((i=0; i < lengthOver; i++ )); do
 done
 
 
-length=${#UPPERLOCATIONS[*]}
-lengthOver=${#OVERFSLOCATIONS[*]}
-lengthLower=${#LOWERLOCATIONS[*]}
+
 
 #remount ro ntfs drives as readable
 for ((i=0; i < lengthLower; i++ )); do
@@ -28,8 +29,17 @@ done
 
 
 #generate scripts
-for ((i=0; i < length; i++ )); do
-    generateScripts ${UPPERLOCATIONS[$i]} ${LOWERLOCATIONS[$i]}
+for ((i=0; i < lengthOver; i++ )); do
+
+    #check disk space
+    diskCheck=$(compareDiskUsage ${UPPERLOCATIONS[$i]} ${LOWERLOCATIONS[$i]})
+
+    if ((diskCheck == 1)); then
+        generateScripts ${UPPERLOCATIONS[$i]} ${LOWERLOCATIONS[$i]}
+    elif ((diskCheck == -1)); then
+        breakOutExit
+    fi
+
 done
 
 
@@ -48,24 +58,12 @@ for file in overlay-tools*.sh; do
 done
 
 #delete all in UPPERLOCATIONS
-for ((i=0; i < length; i++ )); do
+for ((i=0; i < lengthUpper; i++ )); do
     deleteUppers ${UPPERLOCATIONS[$i]}
 done
 
 sleep 5
 
-#unmask service
-sudo systemctl unmask systemd-remount-fs.service
+#run function as part of exit
+breakOutExit
 
-#unmask final overlays
-for ((k=0; k < lengthOver; k++ )); do
-    sudo systemctl --runtime unmask "$(systemd-escape -p --suffix=automount ${OVERFSLOCATIONS[$k]})"
-done
-
-
-
-sync
-sync
-sudo mount -a && sudo systemctl daemon-reload && sudo systemctl restart local-fs.target
-sync
-sync
