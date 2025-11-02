@@ -2,6 +2,8 @@ source ./SyncConfig.env
 source ./copyfunction.env
 source ./drivemounting.env
 source ./SteamACFtracking.env
+source ./breakoutFunc.env
+
 
 sudo rm ./overlay-tools*.sh
 
