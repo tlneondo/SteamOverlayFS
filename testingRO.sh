@@ -35,8 +35,10 @@ for ((i=0; i < lengthOver; i++ )); do
     diskCheck=$(compareDiskUsage ${UPPERLOCATIONS[$i]} ${LOWERLOCATIONS[$i]})
 
     if ((diskCheck == 1)); then
+        echo "There is enough Space in ${LOWERLOCATIONS[$i]} to proceed."
         generateScripts ${UPPERLOCATIONS[$i]} ${LOWERLOCATIONS[$i]}
     elif ((diskCheck == -1)); then
+        echo "Not enough Space in ${LOWERLOCATIONS[$i]} to proceed."
         breakOutExit
     fi
 
