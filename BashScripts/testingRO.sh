@@ -1,7 +1,7 @@
 source ../config/SyncConfig.env
-source ../BashScripts/copyfunction.env
-source ../BashScripts/drivemounting.env
-source ../BashScripts/breakoutFunc.env
+source ./copyfunction.env
+source ./drivemounting.env
+source ./systemfunctions.env
 
 
 cleanupOldScripts
