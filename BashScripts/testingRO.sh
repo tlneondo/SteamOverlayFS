@@ -63,8 +63,15 @@ for ((i=0; i < lengthUpper; i++ )); do
 done
 
 #hide certain folders in upper overlay 
+for ((i=0; i < lengthIgnoreFolders; i++ )); do
+    sudo mkdir -p ${IGNOREFOLDER[$i]}
+    sudo setfattr -n trusted.overlay.opaque -v y ${IGNOREFOLDER[$i]}
+}
+done
 
-hideFolderinOverlay
+for ((i=0; i < lengthIgnoreFiles; i++ )); do
+    sudo mknod ${IGNOREFILES[$i]} c 0 0
+done
 
 sleep 5
 
