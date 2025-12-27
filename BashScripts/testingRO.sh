@@ -62,6 +62,10 @@ for ((i=0; i < lengthUpper; i++ )); do
     deleteUppers ${UPPERLOCATIONS[$i]}
 done
 
+#hide certain folders in upper overlay 
+
+hideFolderinOverlay
+
 sleep 5
 
 #run function as part of exit
